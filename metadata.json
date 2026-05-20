@@ -1,0 +1,8 @@
+{
+  "name": "ExperienceBox",
+  "description": "A fully responsive, Quora-style web application for sharing life experiences, mistakes, and reality checks.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* Theme Variables */
+:root {
+  --bg-color: #f3f4f6;
+  --bg-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+              radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+              radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --text-primary: #1e293b;
+}
+
+[data-theme='midnight'] {
+  --bg-color: #000000;
+  --bg-image: none;
+  --card-bg: rgba(20, 20, 20, 0.85);
+  --text-primary: #f5f5f5;
+}
+
+[data-theme='midnight'] .text-slate-900,
+[data-theme='midnight'] .text-slate-800,
+[data-theme='midnight'] .text-slate-700 {
+  color: var(--text-primary);
+}
+
+[data-theme='midnight'] .text-slate-600,
+[data-theme='midnight'] .text-slate-500 {
+  color: #94a3b8;
+}
+
+[data-theme='midnight'] input::placeholder,
+[data-theme='midnight'] textarea::placeholder,
+[data-theme='midnight'] .placeholder\:text-slate-300::placeholder,
+[data-theme='midnight'] .placeholder\:text-slate-400::placeholder {
+  color: #64748b;
+}
+
+[data-theme='midnight'] .bg-indigo-50 {
+  background-color: rgba(99, 102, 241, 0.15);
+}
+
+[data-theme='midnight'] .text-indigo-600 {
+  color: #818cf8;
+}
+
+[data-theme='midnight'] .bg-slate-50,
+[data-theme='midnight'] .bg-slate-50\/50,
+[data-theme='midnight'] .bg-slate-100,
+[data-theme='midnight'] .hover\:bg-slate-200:hover,
+[data-theme='midnight'] .hover\:bg-slate-50:hover,
+[data-theme='midnight'] .focus\:bg-white:focus,
+[data-theme='midnight'] .bg-slate-200,
+[data-theme='midnight'] .bg-white\/50,
+[data-theme='midnight'] .bg-white {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='midnight'] .border-slate-200,
+[data-theme='midnight'] .border-slate-100 {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='midnight'] .glass-card {
+  background: var(--card-bg);
+}
+
+[data-theme='minimal'] {
+  --bg-color: #f5f6f7;
+  --bg-image: none;
+  --card-bg: #ffffff;
+  --text-primary: #282829;
+}
+
+body {
+  background-color: var(--bg-color);
+  background-image: var(--bg-image);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  transition: background 0.5s ease, color 0.3s ease;
+}
+
+.glass {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.glass-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Custom ReactQuill Styles */
+.write-editor .quill {
+  display: flex;
+  flex-direction: column;
+}
+
+.write-editor .ql-toolbar {
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  background-color: #f8fafc;
+  padding: 12px 16px !important;
+}
+
+.write-editor .ql-container {
+  border: none !important;
+  font-family: inherit !important;
+  font-size: 16px !important;
+}
+
+.write-editor .ql-editor {
+  padding: 24px !important;
+  min-height: 400px;
+  color: #334155;
+  line-height: 1.7;
+}
+
+.write-editor .ql-editor.ql-blank::before {
+  color: #94a3b8;
+  font-style: italic;
+}
