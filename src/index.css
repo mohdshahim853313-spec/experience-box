@@ -24,12 +24,12 @@
 [data-theme='midnight'] .text-slate-900,
 [data-theme='midnight'] .text-slate-800,
 [data-theme='midnight'] .text-slate-700 {
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 [data-theme='midnight'] .text-slate-600,
 [data-theme='midnight'] .text-slate-500 {
-  color: #94a3b8;
+  color: #94a3b8 !important;
 }
 
 [data-theme='midnight'] input::placeholder,
@@ -39,8 +39,31 @@
   color: #64748b;
 }
 
+[data-theme='midnight'] .bg-\[\#f1f5f9\] {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+}
+
+[data-theme='midnight'] .bg-\[\#f1f5f9\] .text-indigo-600,
+[data-theme='midnight'] .bg-\[\#f1f5f9\] .text-slate-700 {
+  color: #ffffff !important;
+}
+
+[data-theme='midnight'] .bg-indigo-50\/50,
 [data-theme='midnight'] .bg-indigo-50 {
-  background-color: rgba(99, 102, 241, 0.15);
+  background-color: rgba(99, 102, 241, 0.15); /* Restore default soft blue */
+}
+
+[data-theme='midnight'] .dark-active-theme {
+  background-color: #4f46e5 !important;
+}
+
+[data-theme='midnight'] .theme-text-active {
+  color: #ffffff !important;
+}
+
+[data-theme='midnight'] .theme-dot-active {
+  background-color: #ffffff !important;
 }
 
 [data-theme='midnight'] .text-indigo-600 {
@@ -49,19 +72,21 @@
 
 [data-theme='midnight'] .bg-slate-50,
 [data-theme='midnight'] .bg-slate-50\/50,
+[data-theme='midnight'] .bg-slate-50\/80,
 [data-theme='midnight'] .bg-slate-100,
 [data-theme='midnight'] .hover\:bg-slate-200:hover,
 [data-theme='midnight'] .hover\:bg-slate-50:hover,
+[data-theme='midnight'] .hover\:bg-slate-50\/80:hover,
 [data-theme='midnight'] .focus\:bg-white:focus,
 [data-theme='midnight'] .bg-slate-200,
 [data-theme='midnight'] .bg-white\/50,
 [data-theme='midnight'] .bg-white {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: transparent !important;
 }
 
 [data-theme='midnight'] .border-slate-200,
 [data-theme='midnight'] .border-slate-100 {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 [data-theme='midnight'] .glass-card {

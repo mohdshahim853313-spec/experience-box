@@ -1,19 +1,41 @@
-import React from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Layout } from "../components/layout/Layout";
 import { PostCard } from "../components/feed/PostCard";
-import { MOCK_POSTS } from "../services/data";
 import { Users, Search, Star, UserPlus } from "lucide-react";
 import { cn } from "../lib/utils";
+import { useLocalStorage } from "../hooks/useShared";
+import { fetchExperiences, fetchSuggestedFollows } from "../services/supabase";
+import { Post } from "../services/data";
 
 export function FollowingPage() {
+  const [follows] = useLocalStorage<Record<string, boolean>>("expbox_follows", {});
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [suggestedFollows, setSuggestedFollows] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        const [postsData, suggestedData] = await Promise.all([
+          fetchExperiences(),
+          fetchSuggestedFollows()
+        ]);
+        setPosts(postsData);
+        setSuggestedFollows(suggestedData);
+      } catch (e) {
+        console.error("Failed to load following data", e);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
   // Only show a subset of posts for the "followed" feed
-  const followedPosts = MOCK_POSTS.slice(0, 3);
-  
-  const suggestedFollows = [
-    { name: "Anjali Sharma", handle: "@anjalis", bio: "Product Designer @ Meta", followers: "12k" },
-    { name: "Rahul Verma", handle: "@rahulv", bio: "Startup founder & angel investor", followers: "8.5k" },
-    { name: "Priya Patel", handle: "@priyacodes", bio: "Senior Engineer. Writing about web dev.", followers: "24k" },
-  ];
+  const followedPosts = useMemo(() => {
+    return posts.filter(post => follows[post.creator_id]);
+  }, [posts, follows]);
 
   return (
     <Layout>
@@ -31,23 +53,31 @@ export function FollowingPage() {
           </div>
 
           <div className="space-y-6">
-            {followedPosts.map(post => (
-              <PostCard key={post.id} post={post} />
-            ))}
-            
-            {followedPosts.length === 0 && (
-              <div className="glass-card flex flex-col items-center justify-center p-12 text-center border-dashed">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                  <UserPlus className="w-8 h-8 text-slate-400" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-700 mb-2">You aren't following anyone yet</h3>
-                <p className="text-slate-500 mb-6 max-w-sm">
-                  Discover great writers, thought leaders, and creators to fill your feed with inspiring stories.
-                </p>
-                <button className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-full hover:bg-indigo-700 transition-colors">
-                  Find people to follow
-                </button>
+            {isLoading ? (
+              <div className="flex items-center justify-center p-12 text-slate-500">
+                <div className="animate-spin w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full" />
               </div>
+            ) : (
+              <>
+                {followedPosts.map(post => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+                
+                {followedPosts.length === 0 && (
+                  <div className="glass-card flex flex-col items-center justify-center p-12 text-center border-dashed rounded-2xl">
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                      <UserPlus className="w-8 h-8 text-slate-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-700 mb-2">You aren't following anyone yet</h3>
+                    <p className="text-slate-500 mb-6 max-w-sm">
+                      Discover great writers, thought leaders, and creators to fill your feed with inspiring stories.
+                    </p>
+                    <button className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-full hover:bg-indigo-700 transition-colors">
+                      Find people to follow
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -67,7 +97,7 @@ export function FollowingPage() {
           </div>
 
           <div className="glass-card rounded-2xl overflow-hidden border border-slate-200 bg-white/50">
-            <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+            <div className="rounded-t-2xl p-4 border-b border-slate-100 bg-slate-50/50">
               <h3 className="font-bold text-slate-800 flex items-center gap-2">
                 <Star className="w-4 h-4 text-amber-500" />
                 Suggested for you

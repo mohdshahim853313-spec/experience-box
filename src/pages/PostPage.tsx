@@ -1,35 +1,40 @@
 import React, { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "../components/layout/Layout";
-import { MOCK_POSTS } from "../services/data";
+import { MOCK_POSTS, Post } from "../services/data";
 import { ArrowLeft, UserCircle, Share2, MoreHorizontal, MessageCircle, ArrowUp, ArrowDown } from "lucide-react";
 import { useLocalStorage, useIsMobile } from "../hooks/useShared";
 import { cn } from "../lib/utils";
+import { PostCard } from "../components/feed/PostCard";
 
 export function PostPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
-  const post = useMemo(() => {
+  const allPosts = useMemo(() => {
     const localPostsStr = localStorage.getItem('expbox_user_posts');
     const localPosts = localPostsStr ? JSON.parse(localPostsStr) : [];
-    const allPosts = [...localPosts, ...MOCK_POSTS];
+    return [...localPosts, ...MOCK_POSTS] as Post[];
+  }, []);
+
+  const post = useMemo(() => {
     return allPosts.find(p => p.id === id);
-  }, [id]);
+  }, [id, allPosts]);
+
+  const relatedPosts = useMemo(() => {
+    if (!post) return [];
+    return allPosts
+      .filter(p => p.id !== post.id && p.category === post.category)
+      .slice(0, 3);
+  }, [post, allPosts]);
 
   // Use the same local storage keys to keep likes/comments synced
   const [upvotes, setUpvotes] = useLocalStorage<Record<string, number>>("expbox_upvotes", {});
   const [downvotes, setDownvotes] = useLocalStorage<Record<string, number>>("expbox_downvotes", {});
   const [follows, setFollows] = useLocalStorage<Record<string, boolean>>("expbox_follows", {});
 
-  const baseVotes = useMemo(() => {
-    if (!post) return 0;
-    const hash = post.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return (hash % 400) + 50;
-  }, [post]);
-
-  const currentUpvotes = post ? (upvotes[post.id] ?? baseVotes) : 0;
+  const currentUpvotes = post ? (upvotes[post.id] ?? (post.initial_upvotes || 0)) : 0;
   const currentDownvotes = post ? (downvotes[post.id] ?? 0) : 0;
   
   const [isFollowing, setIsFollowing] = useState(post ? (follows[post.creator_id] || false) : false);
@@ -37,8 +42,15 @@ export function PostPage() {
   const [userVotes, setUserVotes] = useLocalStorage<Record<string, 'up' | 'down' | null>>("expbox_user_votes", {});
   const userVote = post ? (userVotes[post.id] || null) : null;
 
+  const [user] = useLocalStorage("expbox_user_profile", {
+    name: "Mohd Shahim",
+    email: "mohdshahim853313@gmail.com",
+    avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Shahim"
+  });
+
   const [commentText, setCommentText] = useState("");
   const [postComments, setPostComments] = useLocalStorage<any[]>(`expbox_comments_${id}`, []);
+  const [notifications, setNotifications] = useLocalStorage<any[]>("expbox_notifications", []);
 
   const [showMenu, setShowMenu] = useState(false);
   const [savedPosts, setSavedPosts] = useLocalStorage<string[]>("expbox_saved_posts", []);
@@ -87,7 +99,7 @@ export function PostPage() {
 
   const displayUpvotes = currentUpvotes + (userVote === 'up' ? 1 : 0);
   const displayDownvotes = currentDownvotes + (userVote === 'down' ? 1 : 0);
-  const totalScore = Math.max(0, displayUpvotes - displayDownvotes);
+  const totalScore = displayUpvotes - displayDownvotes;
 
   const handleFollow = () => {
     if (post.is_anonymous) return;
@@ -123,6 +135,22 @@ export function PostPage() {
 
     setPostComments(prev => [newComment, ...(prev || [])]);
     setCommentText("");
+
+    // Create a notification for the post owner
+    if (post.creator_id === "local_user") {
+      const newNotification = {
+        id: `notif_${Date.now()}`,
+        type: "comment",
+        user: {
+          name: "Anonymous User",
+          avatar: "👤",
+        },
+        content: `commented on your post "${post.title.substring(0, 30)}..."`,
+        time: "Just now",
+        read: false,
+      };
+      setNotifications(prev => [newNotification, ...(prev || [])]);
+    }
   };
 
   const displayName = post.is_anonymous ? "Anonymous User" : (post.author_name || "Unknown User");
@@ -130,7 +158,7 @@ export function PostPage() {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto w-full px-0 sm:px-0 mt-0 sm:mt-6">
-        <article className="bg-[#ffffff] dark:bg-[#1a1a1b] sm:glass-card p-4 sm:p-6 md:p-8 rounded-none sm:rounded-2xl md:rounded-3xl border-0 sm:border sm:border-slate-200 border-slate-100">
+        <article className="glass-card max-sm:border-x-0 p-4 sm:p-6 md:p-8 max-sm:rounded-none rounded-2xl md:rounded-3xl border border-slate-200">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div 
@@ -181,13 +209,21 @@ export function PostPage() {
               {showMenu && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 bottom-full mb-2 w-48 bg-white border border-slate-200 shadow-xl rounded-lg py-1 z-20 overflow-hidden flex flex-col">
+                  <div className="absolute right-0 bottom-[calc(100%+8px)] sm:bottom-auto sm:top-full mb-2 w-48 bg-[var(--card-bg)] border border-slate-200 shadow-xl rounded-lg py-1 z-20 overflow-hidden flex flex-col">
                     <button 
                       onClick={(e) => { e.stopPropagation(); setShowMenu(false); handleSave(); }}
                       className="px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 font-medium"
                     >
                       {isSaved ? "Remove Bookmark" : "Bookmark"}
                     </button>
+                    {post.creator_id === "local_user" && (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setShowMenu(false); navigate(`/write?edit=${post.id}`); }}
+                        className="px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 font-medium"
+                      >
+                        Edit story
+                      </button>
+                    )}
                     <button 
                       onClick={(e) => { e.stopPropagation(); setShowMenu(false); alert("Post reported."); }}
                       className="px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 font-medium"
@@ -218,16 +254,17 @@ export function PostPage() {
                   )}
                 >
                   <ArrowUp className={cn("w-4 h-4", userVote === 'up' ? "text-white fill-white" : "text-indigo-500")} strokeWidth={2.5} />
-                  <span className={cn("text-xs font-bold", userVote === 'up' ? "text-white" : "text-slate-600")}>{totalScore}</span>
+                  <span className={cn("text-xs font-bold", userVote === 'up' ? "text-white" : "text-slate-600")}>{displayUpvotes}</span>
                 </button>
                 <button 
                   onClick={handleDownvote}
                   className={cn(
-                    "px-4 py-2 transition-all",
+                    "flex items-center gap-1.5 px-4 py-2 transition-all",
                     userVote === 'down' ? "bg-red-600 text-white" : "hover:bg-slate-100"
                   )}
                 >
                   <ArrowDown className={cn("w-4 h-4", userVote === 'down' ? "text-white" : "text-slate-500")} strokeWidth={2.5} />
+                  <span className={cn("text-xs font-bold", userVote === 'down' ? "text-white" : "text-slate-600")}>{displayDownvotes}</span>
                 </button>
               </div>
 
@@ -254,7 +291,9 @@ export function PostPage() {
             <h3 className="font-bold text-slate-800 mb-4">Comments ({postComments.length})</h3>
             
             <form onSubmit={handleComment} className="flex gap-3 mb-8">
-              <div className="w-8 h-8 rounded-full bg-slate-200 flex-shrink-0" />
+              <div className="w-8 h-8 rounded-full bg-slate-200 flex-shrink-0 overflow-hidden border border-slate-300">
+                <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+              </div>
               <div className="flex-1 flex flex-col items-end gap-2">
                 <textarea 
                   rows={2}
@@ -295,6 +334,19 @@ export function PostPage() {
             </div>
           </div>
         </article>
+
+        {relatedPosts.length > 0 && (
+          <div className="mt-12 mb-8">
+            <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+              Related stories in {post.category}
+            </h2>
+            <div className="flex flex-col gap-4">
+              {relatedPosts.map(rp => (
+                <PostCard key={rp.id} post={rp} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Layout } from "../components/layout/Layout";
 import { Bell, Heart, MessageCircle, UserPlus, Star } from "lucide-react";
 import { cn } from "../lib/utils";
+import { useLocalStorage } from "../hooks/useShared";
 
 type NotificationType = "like" | "comment" | "follow" | "mention";
 
@@ -62,7 +63,7 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 
 export function NotificationsPage() {
   const [filter, setFilter] = useState<"all" | "unread">("all");
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const [notifications, setNotifications] = useLocalStorage<Notification[]>("expbox_notifications", []);
 
   const getIcon = (type: NotificationType) => {
     switch (type) {
@@ -102,12 +103,12 @@ export function NotificationsPage() {
         </div>
 
         <div className="glass-card rounded-2xl border border-slate-200 overflow-hidden bg-white/50">
-          <div className="flex border-b border-slate-100 bg-slate-50/80 p-2 gap-2">
+          <div className="rounded-t-2xl flex border-b border-slate-100 bg-slate-50/80 p-2 gap-2">
             <button 
               onClick={() => setFilter("all")}
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-bold transition-all",
-                filter === "all" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500 hover:text-slate-700"
+                filter === "all" ? "bg-white shadow-sm text-indigo-600" : "bg-transparent text-slate-500 hover:text-slate-700"
               )}
             >
               All
@@ -116,7 +117,7 @@ export function NotificationsPage() {
               onClick={() => setFilter("unread")}
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2",
-                filter === "unread" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500 hover:text-slate-700"
+                filter === "unread" ? "bg-white shadow-sm text-indigo-600" : "bg-transparent text-slate-500 hover:text-slate-700"
               )}
             >
               Unread
@@ -143,7 +144,7 @@ export function NotificationsPage() {
                   key={notification.id} 
                   className={cn(
                     "p-4 flex gap-4 hover:bg-slate-50 transition-colors cursor-pointer group",
-                    !notification.read ? "bg-indigo-50/30" : ""
+                    !notification.read ? "bg-indigo-50" : ""
                   )}
                 >
                   <div className="relative">

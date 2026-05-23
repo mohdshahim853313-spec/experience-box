@@ -3,7 +3,7 @@ import { Layout } from "../components/layout/Layout";
 import { CategoryScroller } from "../components/feed/CategoryScroller";
 import { PostCard } from "../components/feed/PostCard";
 import { fetchExperiences } from "../services/supabase";
-import { Post, CATEGORIES } from "../services/data";
+import { Post, CATEGORIES, MOCK_POSTS } from "../services/data";
 import { Search, UserCircle, ArrowDownAZ } from "lucide-react";
 import { useIsMobile, useLocalStorage } from "../hooks/useShared";
 import { cn } from "../lib/utils";
@@ -88,14 +88,27 @@ const getPostCommentsCount = (post: Post) => {
 };
 
 export function HomePage() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [posts, setPosts] = useState<Post[]>(() => {
+    try {
+      const localPostsStr = localStorage.getItem('expbox_user_posts');
+      const localPosts = localPostsStr ? JSON.parse(localPostsStr) as Post[] : [];
+      return [...localPosts, ...MOCK_POSTS];
+    } catch(e) {
+      return MOCK_POSTS;
+    }
+  });
+  const [isLoading, setIsLoading] = useState(false);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState(CATEGORIES[0]); // "All Posts"
   const [sortOption, setSortOption] = useState<SortOption>("Newest");
   const [hiddenPosts, setHiddenPosts] = useLocalStorage<string[]>("expbox_hidden_posts", []);
+  const [user] = useLocalStorage("expbox_user_profile", {
+    name: "Mohd Shahim",
+    email: "mohdshahim853313@gmail.com",
+    avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Shahim"
+  });
   
   const isMobile = useIsMobile();
 
@@ -147,8 +160,10 @@ export function HomePage() {
     <Layout>
       <div className="flex flex-col mx-auto w-full">
         {/* Search/Ask Bar */}
-        <div className="bg-[#ffffff] dark:bg-[#1a1a1b] sm:glass-card p-4 rounded-none md:rounded-xl sm:shadow-sm flex items-center gap-4 border-b border-t-0 border-slate-200 dark:border-slate-800 sm:border md:mb-6 mb-1.5 z-10 relative">
-          <UserCircle className="w-8 h-8 text-slate-400 bg-slate-200 rounded-full flex-shrink-0" />
+        <div className="glass-card max-sm:border-x-0 max-sm:border-t-0 p-4 max-sm:rounded-none rounded-xl md:rounded-2xl shadow-sm flex items-center gap-4 border border-slate-200 md:mb-6 mb-1.5 z-10 relative">
+          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-slate-200 border border-slate-300">
+            <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+          </div>
           <div className="relative flex-1">
             <input
               type="text"
@@ -184,14 +199,14 @@ export function HomePage() {
 
         {/* Feed Layout */}
         <div className="flex-1 w-full">
-          {isLoading ? (
+          {isLoading && posts.length === 0 ? (
             <div className="flex items-center justify-center p-12 text-slate-500">
               <div className="animate-spin w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full" />
             </div>
           ) : filteredPosts.length > 0 ? (
             <div className={cn(
               "w-full px-0",
-              isMobile ? "flex flex-col gap-[6px] bg-[#e1e2e4] dark:bg-[#000000] pb-[6px]" : "grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 bg-transparent"
+              isMobile ? "flex flex-col gap-[6px] bg-slate-200 pb-[6px]" : "grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 bg-transparent"
             )}>
               {filteredPosts.map(post => (
                 <PostCard key={post.id} post={post} onHide={handleHidePost} />

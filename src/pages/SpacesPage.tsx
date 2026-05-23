@@ -1,25 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "../components/layout/Layout";
 import { Users, Compass, Plus, ChevronRight, Hash } from "lucide-react";
 import { cn } from "../lib/utils";
+import { fetchDiscoverSpaces, fetchYourSpaces } from "../services/supabase";
 
 export function SpacesPage() {
-  const YOUR_SPACES = [
-    { id: 1, name: "Startup Chronicles", members: "12.4k", icon: "🚀", unread: 3, role: "Admin" },
-    { id: 2, name: "Design Systems", members: "8.2k", icon: "🎨", role: "Contributor" },
-    { id: 3, name: "Digital Nomads", members: "45k", icon: "🌍", role: "Member" },
-  ];
+  const [YOUR_SPACES, setYourSpaces] = useState<any[]>([]);
+  const [DISCOVER_SPACES, setDiscoverSpaces] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const DISCOVER_SPACES = [
-    { id: 4, name: "Product Management", members: "89k", icon: "📈", description: "Discussions on product strategy, roadmap, and execution." },
-    { id: 5, name: "Indie Hackers", members: "120k", icon: "💻", description: "Bootstrap your way to financial freedom and build in public." },
-    { id: 6, name: "Philosophy & Life", members: "34k", icon: "🧠", description: "Deep conversations about the meaning of it all." },
-    { id: 7, name: "Personal Finance", members: "250k", icon: "💰", description: "Strategies for wealth building, investments, and financial independence." },
-    { id: 8, name: "Web3 Builders", members: "15k", icon: "⛓️", description: "Building the decentralized future, one block at a time." },
-    { id: 9, name: "Fitness Journey", members: "67k", icon: "🏋️", description: "Share your progress, routines, and diet tips with the community." },
-    { id: 10, name: "Creative Writing", members: "42k", icon: "✍️", description: "A safe space to share your stories, poems, and fiction." },
-    { id: 11, name: "Machine Learning", members: "105k", icon: "🤖", description: "Latest trends, papers, and practical applications of AI/ML." },
-  ];
+  useEffect(() => {
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        const [yourData, discoverData] = await Promise.all([
+          fetchYourSpaces(),
+          fetchDiscoverSpaces()
+        ]);
+        setYourSpaces(yourData);
+        setDiscoverSpaces(discoverData);
+      } catch (e) {
+        console.error("Failed to load spaces", e);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   return (
     <Layout>
@@ -36,6 +43,11 @@ export function SpacesPage() {
             </div>
           </div>
 
+          {isLoading ? (
+            <div className="flex items-center justify-center p-12 text-slate-500">
+              <div className="animate-spin w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full" />
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {DISCOVER_SPACES.map(space => (
               <div key={space.id} className="glass-card p-5 rounded-2xl border border-slate-200 hover:border-indigo-300 transition-all hover:shadow-md flex flex-col h-full bg-white/50 group">
@@ -58,6 +70,7 @@ export function SpacesPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -68,7 +81,7 @@ export function SpacesPage() {
           </button>
 
           <div className="glass-card rounded-2xl border border-slate-200 bg-white/50 overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between">
+            <div className="rounded-t-2xl p-4 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between">
               <h3 className="font-bold text-slate-800 flex items-center gap-2">
                 <Hash className="w-4 h-4 text-indigo-500" />
                 Your Spaces

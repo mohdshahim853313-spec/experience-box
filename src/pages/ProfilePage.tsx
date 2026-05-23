@@ -184,12 +184,6 @@ export function ProfilePage() {
           followedList.push(person);
         }
       });
-      if (followedList.length === 0) {
-        return [
-          { id: "user_1", name: "Sarah Jenkins", avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Sarah", bio: "Tech entrepreneur, digital nomad" },
-          { id: "user_2", name: "Michael Chen", avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Michael", bio: "Educator & slow living advocate" }
-        ];
-      }
       return followedList;
     }
     
@@ -302,7 +296,7 @@ export function ProfilePage() {
               }
             }}
           >
-            <div className="w-24 h-24 rounded-full border-4 border-white dark:border-slate-800 shadow-xl overflow-hidden bg-slate-50 dark:bg-slate-800">
+            <div className="w-24 h-24 rounded-full border-4 border-white shadow-xl overflow-hidden bg-slate-50">
               <img src={activeUser.avatar} alt={activeUser.name} className="w-full h-full object-cover" />
             </div>
             {isOwnProfile && (
@@ -312,9 +306,9 @@ export function ProfilePage() {
             )}
           </div>
           
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-[color:var(--text-primary)]">{activeUser.name}</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">{activeUser.email}</p>
-          <p className="text-slate-600 dark:text-slate-300 text-sm max-w-md mx-auto leading-relaxed mt-2">{activeUser.bio}</p>
+          <h1 className="text-2xl font-bold text-slate-900">{activeUser.name}</h1>
+          <p className="text-sm text-slate-500 mb-1">{activeUser.email}</p>
+          <p className="text-slate-600 text-sm max-w-md mx-auto leading-relaxed mt-2">{activeUser.bio}</p>
 
           {/* Follow Button for Other User Profiles */}
           {!isOwnProfile && (
@@ -342,24 +336,24 @@ export function ProfilePage() {
           )}
 
           {/* Stats Summary Bar */}
-          <div className="flex gap-8 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 w-full justify-center">
+          <div className="flex gap-8 mt-6 pt-6 border-t border-slate-100 w-full justify-center">
             <button 
               onClick={() => setActiveTab("posts")} 
-              className={cn("flex flex-col items-center transition-colors px-3 py-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50", activeTab === "posts" ? "text-indigo-600 dark:text-indigo-400 font-bold" : "text-slate-500 dark:text-slate-400")}
+              className={cn("flex flex-col items-center transition-colors px-3 py-1.5 rounded-xl hover:bg-slate-50", activeTab === "posts" ? "text-indigo-600 font-bold" : "text-slate-500")}
             >
               <span className="text-xl font-extrabold">{userStories.length}</span>
               <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Stories</span>
             </button>
             <button 
               onClick={() => setActiveTab("followers")} 
-              className={cn("flex flex-col items-center transition-colors px-3 py-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50", activeTab === "followers" ? "text-indigo-600 dark:text-indigo-400 font-bold" : "text-slate-500 dark:text-slate-400")}
+              className={cn("flex flex-col items-center transition-colors px-3 py-1.5 rounded-xl hover:bg-slate-50", activeTab === "followers" ? "text-indigo-600 font-bold" : "text-slate-500")}
             >
               <span className="text-xl font-extrabold">{followersList.length}</span>
               <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Followers</span>
             </button>
             <button 
               onClick={() => setActiveTab("following")} 
-              className={cn("flex flex-col items-center transition-colors px-3 py-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50", activeTab === "following" ? "text-indigo-600 dark:text-indigo-400 font-bold" : "text-slate-500 dark:text-slate-400")}
+              className={cn("flex flex-col items-center transition-colors px-3 py-1.5 rounded-xl hover:bg-slate-50", activeTab === "following" ? "text-indigo-600 font-bold" : "text-slate-500")}
             >
               <span className="text-xl font-extrabold">{followingList.length}</span>
               <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Following</span>
@@ -378,7 +372,7 @@ export function ProfilePage() {
                   <div 
                     key={story.id} 
                     onClick={() => navigate(`/post/${story.id}`)}
-                    className="p-5 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-indigo-100/70 dark:hover:border-indigo-500/30 transition-all cursor-pointer group hover:-translate-y-0.5 hover:shadow-sm bg-white dark:bg-slate-900/50"
+                    className="p-5 rounded-2xl border border-slate-100 hover:border-indigo-100/70 transition-all cursor-pointer group hover:-translate-y-0.5 hover:shadow-sm bg-white"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
@@ -396,7 +390,7 @@ export function ProfilePage() {
                     </p>
                   </div>
                 )) : (
-                  <div className="text-center py-10 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/20">
+                  <div className="text-center py-10 rounded-2xl border-2 border-dashed border-slate-200 bg-white/50">
                     <FileText className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                     <p className="text-slate-500 font-medium text-sm">No stories posted yet by this creator.</p>
                   </div>
@@ -417,10 +411,10 @@ export function ProfilePage() {
                         setActiveTab("posts");
                       }
                     }}
-                    className="p-4 rounded-2xl flex items-center justify-between gap-3 border border-slate-150 hover:border-indigo-150 dark:border-slate-800 dark:hover:border-indigo-500/30 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-all cursor-pointer group bg-white dark:bg-slate-900/50"
+                    className="p-4 rounded-2xl flex items-center justify-between gap-3 border border-slate-150 hover:border-indigo-150 hover:bg-slate-50/50 transition-all cursor-pointer group bg-white"
                   >
                     <div className="flex gap-3 items-center min-w-0">
-                      <img src={follower.avatar} alt={follower.name} className="w-10 h-10 rounded-full border border-slate-100 dark:border-slate-700 object-cover flex-shrink-0 bg-slate-50 dark:bg-slate-800" />
+                      <img src={follower.avatar} alt={follower.name} className="w-10 h-10 rounded-full border border-slate-100 object-cover flex-shrink-0 bg-slate-50" />
                       <div className="min-w-0">
                         <h4 className="font-bold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors truncate">
                           {follower.name}
@@ -431,7 +425,7 @@ export function ProfilePage() {
                     <ChevronRight className="w-4 h-4 text-slate-400 opacity-60 flex-shrink-0" />
                   </div>
                 )) : (
-                  <div className="text-center py-10 col-span-2 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 w-full bg-white/50 dark:bg-slate-900/20">
+                  <div className="text-center py-10 col-span-2 rounded-2xl border-2 border-dashed border-slate-200 w-full bg-white/50">
                     <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                     <p className="text-slate-500 font-medium text-sm">No followers yet.</p>
                   </div>
@@ -452,10 +446,10 @@ export function ProfilePage() {
                         setActiveTab("posts");
                       }
                     }}
-                    className="p-4 rounded-2xl flex items-center justify-between gap-3 border border-slate-150 hover:border-indigo-150 dark:border-slate-800 dark:hover:border-indigo-500/30 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-all cursor-pointer group bg-white dark:bg-slate-900/50"
+                    className="p-4 rounded-2xl flex items-center justify-between gap-3 border border-slate-150 hover:border-indigo-150 hover:bg-slate-50/50 transition-all cursor-pointer group bg-white"
                   >
                     <div className="flex gap-3 items-center min-w-0">
-                      <img src={person.avatar} alt={person.name} className="w-10 h-10 rounded-full border border-slate-100 dark:border-slate-700 object-cover flex-shrink-0 bg-slate-50 dark:bg-slate-800" />
+                      <img src={person.avatar} alt={person.name} className="w-10 h-10 rounded-full border border-slate-100 object-cover flex-shrink-0 bg-slate-50" />
                       <div className="min-w-0">
                         <h4 className="font-bold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors truncate">
                           {person.name}
@@ -466,7 +460,7 @@ export function ProfilePage() {
                     <ChevronRight className="w-4 h-4 text-slate-400 opacity-60 flex-shrink-0" />
                   </div>
                 )) : (
-                  <div className="text-center py-10 col-span-2 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 w-full bg-white/50 dark:bg-slate-900/20">
+                  <div className="text-center py-10 col-span-2 rounded-2xl border-2 border-dashed border-slate-200 w-full bg-white/50">
                     <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                     <p className="text-slate-500 font-medium text-sm">Not following anyone yet.</p>
                   </div>
@@ -480,7 +474,7 @@ export function ProfilePage() {
         {/* Local user profile modifications modal */}
         {isOwnProfile && isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-slate-900/50 backdrop-blur-sm">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-md max-h-full rounded-3xl shadow-2xl flex flex-col glass-card border border-slate-200" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white w-full max-w-md max-h-full rounded-3xl shadow-2xl flex flex-col glass-card border border-slate-200" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between p-6 pb-4 border-b border-slate-100 flex-shrink-0">
                 <h2 className="text-xl font-bold text-slate-900">Choose Profile Picture</h2>
                 <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors">
@@ -528,7 +522,7 @@ export function ProfilePage() {
                 </div>
               </div>
 
-              <div className="flex gap-3 p-6 pt-4 border-t border-slate-100 flex-shrink-0 bg-white dark:bg-slate-900 rounded-b-3xl">
+              <div className="flex gap-3 p-6 pt-4 border-t border-slate-100 flex-shrink-0 bg-white rounded-b-3xl">
                 <button 
                   onClick={() => setIsModalOpen(false)}
                   className="flex-1 py-2.5 font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
@@ -563,7 +557,7 @@ export function ProfilePage() {
                       className={cn(
                         "w-full flex items-center justify-between p-3 rounded-xl border transition-all",
                         theme === t.id 
-                          ? "border-indigo-600 bg-indigo-50/50" 
+                          ? "border-indigo-600 bg-indigo-50/50 dark-active-theme" 
                           : "border-slate-200 hover:bg-white/50"
                       )}
                     >
@@ -571,9 +565,9 @@ export function ProfilePage() {
                         <div className={cn("p-2 rounded-lg text-white", t.color)}>
                           <t.icon className="w-4 h-4" />
                         </div>
-                        <span className="font-medium text-slate-800">{t.name}</span>
+                        <span className={cn("font-medium", theme === t.id ? "text-indigo-900 theme-text-active" : "text-slate-800")}>{t.name}</span>
                       </div>
-                      {theme === t.id && <div className="w-2 h-2 bg-indigo-600 rounded-full" />}
+                      {theme === t.id && <div className="w-2 h-2 bg-indigo-600 theme-dot-active rounded-full" />}
                     </button>
                   ))}
                 </div>

@@ -20,6 +20,9 @@ export function Navbar() {
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Shahim"
   });
 
+  const [notifications] = useLocalStorage<any[]>("expbox_notifications", []);
+  const hasUnread = notifications.some(n => !n.read);
+
   return (
     <header className="hidden md:flex sticky top-0 z-50 w-full h-16 glass shadow-sm">
       <div className="max-w-7xl mx-auto w-full px-8 flex items-center justify-between">
@@ -50,12 +53,12 @@ export function Navbar() {
                 className={cn(
                   "flex items-center justify-center h-16 border-b-2 transition-all focus:outline-none gap-1.5 text-[color:var(--text-primary)]",
                   isActive
-                    ? "border-[color:var(--text-primary)] opacity-100"
-                    : "border-transparent opacity-70 hover:opacity-100 cursor-pointer"
+                    ? "border-indigo-600 text-indigo-600 opacity-100"
+                    : "border-transparent text-[color:var(--text-primary)] opacity-70 hover:opacity-100 cursor-pointer"
                 )}
               >
-                <Icon className="w-[18px] h-[18px]" strokeWidth={2} />
-                <span className={cn("text-[15px]", isActive ? "text-indigo-600 dark:text-indigo-400" : "")}>{link.name}</span>
+                <Icon className={cn("w-[18px] h-[18px]", isActive ? "text-indigo-600" : "")} strokeWidth={2} />
+                <span className={cn("text-[15px]", isActive ? "text-indigo-600 font-bold" : "")}>{link.name}</span>
               </Link>
             );
           })}
@@ -65,7 +68,9 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           <Link to="/notifications" className="p-2 text-[color:var(--text-primary)] opacity-80 hover:opacity-100 hover:bg-slate-500/10 rounded-full transition-all relative">
             <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-indigo-900"></span>
+            {hasUnread && (
+              <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-indigo-900"></span>
+            )}
           </Link>
           <Link to="/profile" className="h-9 w-9 rounded-full bg-slate-300 overflow-hidden border-2 border-white hover:scale-110 transition-transform cursor-pointer">
             <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />

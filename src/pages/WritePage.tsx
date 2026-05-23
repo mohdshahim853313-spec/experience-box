@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
@@ -16,12 +16,16 @@ const CATEGORY_DETAILS = [
 ];
 
 export function WritePage() {
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+  
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
   const [showEditor, setShowEditor] = useState(false);
   const [isCustomCatOpen, setIsCustomCatOpen] = useState(false);
   const [customCategory, setCustomCategory] = useState("");
+  const [draftStatus, setDraftStatus] = useState<'Draft saved' | 'Saving...' | ''>('');
   
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
@@ -32,6 +36,63 @@ export function WritePage() {
     email: "mohdshahim853313@gmail.com",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Shahim"
   });
+
+  useEffect(() => {
+    if (editId) {
+      const existingPostsStr = localStorage.getItem("expbox_user_posts");
+      const existingPosts = existingPostsStr ? JSON.parse(existingPostsStr) : [];
+      const postToEdit = existingPosts.find((p: any) => p.id === editId);
+      if (postToEdit) {
+        setTitle(postToEdit.title);
+        setContent(postToEdit.content || '');
+        setCategory(postToEdit.category);
+        setShowEditor(true);
+      }
+    }
+  }, [editId]);
+
+  // Load Draft
+  useEffect(() => {
+    if (!editId) {
+      const savedDraft = localStorage.getItem('expbox_write_draft');
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          if (draft.title || draft.content) {
+            setTitle(draft.title || '');
+            setContent(draft.content || '');
+            if (draft.category) {
+              setCategory(draft.category);
+              setShowEditor(true);
+            }
+          }
+        } catch(e) {}
+      }
+    }
+  }, []);
+
+  // Auto-Save Draft
+  useEffect(() => {
+    if (!showEditor || editId || (!title.trim() && !content.trim())) return;
+
+    setDraftStatus('Saving...');
+    const timer = setTimeout(() => {
+      const draft = {
+        title,
+        content,
+        category,
+        lastSaved: new Date().toISOString()
+      };
+      localStorage.setItem('expbox_write_draft', JSON.stringify(draft));
+      
+      setDraftStatus('Draft saved');
+      setTimeout(() => {
+        setDraftStatus('');
+      }, 3000);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [title, content, category, showEditor, editId]);
 
   const CATEGORIES = [
     "Reality Check",
@@ -69,26 +130,43 @@ export function WritePage() {
   }, [showEditor]);
 
   const handlePublish = () => {
-    const newPost = {
-      id: "u_" + Date.now().toString(),
-      title: title.trim(),
-      teaser: quillRef.current?.getText().substring(0, 200) + "...",
-      content: content,
-      category: category,
-      price: 0,
-      created_at: new Date().toISOString(),
-      creator_id: "local_user",
-      is_anonymous: false,
-      author_name: user?.name || "Local User",
-      author_avatar: user?.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=Local"
-    };
-    
-    // Save to local storage
     const existingPostsStr = localStorage.getItem("expbox_user_posts");
-    const existingPosts = existingPostsStr ? JSON.parse(existingPostsStr) : [];
-    existingPosts.push(newPost);
-    localStorage.setItem("expbox_user_posts", JSON.stringify(existingPosts));
+    let existingPosts = existingPostsStr ? JSON.parse(existingPostsStr) : [];
     
+    if (editId) {
+      existingPosts = existingPosts.map((p: any) => {
+        if (p.id === editId) {
+          return {
+            ...p,
+            title: title.trim(),
+            teaser: quillRef.current?.getText().substring(0, 200) + "...",
+            content: content,
+            category: category,
+          };
+        }
+        return p;
+      });
+    } else {
+      const newPost = {
+        id: "u_" + Date.now().toString(),
+        title: title.trim(),
+        teaser: quillRef.current?.getText().substring(0, 200) + "...",
+        content: content,
+        category: category,
+        price: 0,
+        created_at: new Date().toISOString(),
+        creator_id: "local_user",
+        is_anonymous: false,
+        author_name: user?.name || "Local User",
+        author_avatar: user?.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=Local"
+      };
+      existingPosts.push(newPost);
+    }
+    
+    if (!editId) {
+      localStorage.removeItem('expbox_write_draft');
+    }
+    localStorage.setItem("expbox_user_posts", JSON.stringify(existingPosts));
     navigate("/");
   };
   
@@ -190,7 +268,13 @@ export function WritePage() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <button 
-                  onClick={() => setShowEditor(false)}
+                  onClick={() => {
+                    if (editId) {
+                      navigate(-1);
+                    } else {
+                      setShowEditor(false);
+                    }
+                  }}
                   className="p-2 -ml-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5" />
@@ -200,19 +284,28 @@ export function WritePage() {
                   <p className="text-sm text-indigo-600 font-medium">in {category}</p>
                 </div>
               </div>
-              <button 
-                onClick={handlePublish}
-                disabled={!title.trim() || !content.trim() || content === '<p><br></p>'}
-                className={cn(
-                  "flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all shadow-sm",
-                  title.trim() && content.trim() && content !== '<p><br></p>'
-                    ? "bg-indigo-600 text-white shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5" 
-                    : "bg-slate-100 text-slate-400 cursor-not-allowed"
+
+              <div className="flex items-center gap-4">
+                {draftStatus && (
+                  <span className="text-xs font-medium text-slate-400 italic">
+                    {draftStatus}
+                  </span>
                 )}
-              >
-                <Share className="w-4 h-4" />
-                Publish
-              </button>
+                
+                <button 
+                  onClick={handlePublish}
+                  disabled={!title.trim() || !content.trim() || content === '<p><br></p>'}
+                  className={cn(
+                    "flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all shadow-sm",
+                    title.trim() && content.trim() && content !== '<p><br></p>'
+                      ? "bg-indigo-600 text-white shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5" 
+                      : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                  )}
+                >
+                  <Share className="w-4 h-4" />
+                  {editId ? "Save Changes" : "Publish"}
+                </button>
+              </div>
             </div>
 
             <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">

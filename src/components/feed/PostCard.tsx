@@ -19,14 +19,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
   const [downvotes, setDownvotes] = useLocalStorage<Record<string, number>>("expbox_downvotes", {});
   const [follows, setFollows] = useLocalStorage<Record<string, boolean>>("expbox_follows", {});
 
-  // Stabilize initial count based on post ID if not in localStorage
-  const baseVotes = useMemo(() => {
-    // simple hash-like number from ID
-    const hash = post.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return (hash % 400) + 50;
-  }, [post.id]);
-
-  const currentUpvotes = upvotes[post.id] ?? baseVotes;
+  const currentUpvotes = upvotes[post.id] ?? (post.initial_upvotes || 0);
   const currentDownvotes = downvotes[post.id] ?? 0;
   const [isFollowing, setIsFollowing] = useState(follows[post.creator_id] || false);
 
@@ -72,7 +65,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
 
   const displayUpvotes = currentUpvotes + (userVote === 'up' ? 1 : 0);
   const displayDownvotes = currentDownvotes + (userVote === 'down' ? 1 : 0);
-  const totalScore = Math.max(0, displayUpvotes - displayDownvotes);
+  const totalScore = displayUpvotes - displayDownvotes;
 
   const handleFollow = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -114,7 +107,12 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
   const displayName = post.is_anonymous ? "Anonymous User" : (post.author_name || "Unknown User");
   
   return (
-    <article className="bg-[#ffffff] dark:bg-[#1a1a1b] sm:glass-card p-4 sm:p-5 rounded-none sm:rounded-2xl border-0 sm:border sm:border-slate-200 sm:dark:border-slate-800 flex flex-col h-fit">
+    <article 
+      className={cn(
+        "glass-card p-4 sm:p-5 max-sm:rounded-none rounded-2xl max-sm:border-x-0 border border-slate-200 flex flex-col h-full relative",
+        showMenu ? "z-50" : "z-0"
+      )}
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div 
@@ -155,13 +153,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
             </span>
           </div>
         </div>
-
-        {/* Desktop Only Badges (Price) */}
-        {!isMobile && (
-          <div className={cn("font-bold text-sm", post.price > 0 ? "text-slate-600" : "text-green-600")}>
-            {post.price > 0 ? `₹${post.price}` : "Free"}
-          </div>
-        )}
         
         {/* Mobile Hide/Close Button */}
         {isMobile && onHide && (
@@ -207,16 +198,17 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
               )}
             >
               <ArrowUp className={cn("w-4 h-4", userVote === 'up' ? "text-white fill-white" : "text-indigo-500")} strokeWidth={2.5} />
-              <span className={cn("text-xs font-bold", userVote === 'up' ? "text-white" : "text-slate-600")}>Upvote • {totalScore}</span>
+              <span className={cn("text-xs font-bold", userVote === 'up' ? "text-white" : "text-slate-600")}>{displayUpvotes}</span>
             </button>
             <button 
               onClick={handleDownvote}
               className={cn(
-                "px-3 py-1.5 transition-all active:scale-95",
-                userVote === 'down' ? "bg-red-600 text-white" : "hover:bg-slate-100"
+                "flex items-center gap-1.5 px-3 py-1.5 transition-all active:scale-95",
+                userVote === 'down' ? "bg-red-600 text-white" : "bg-slate-50 hover:bg-slate-100"
               )}
             >
               <ArrowDown className={cn("w-4 h-4", userVote === 'down' ? "text-white" : "text-slate-500")} strokeWidth={2.5} />
+              <span className={cn("text-xs font-bold", userVote === 'down' ? "text-white" : "text-slate-600")}>{displayDownvotes}</span>
             </button>
           </div>
 
@@ -257,13 +249,21 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
               {showMenu && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 bottom-full mb-2 w-48 bg-white border border-slate-200 shadow-xl rounded-lg py-1 z-20 overflow-hidden flex flex-col">
+                  <div className="absolute right-0 bottom-[calc(100%+8px)] sm:bottom-auto sm:top-full mb-2 w-48 bg-[var(--card-bg)] border border-slate-200 shadow-xl rounded-lg py-1 z-20 overflow-hidden flex flex-col">
                     <button 
                       onClick={(e) => { e.stopPropagation(); setShowMenu(false); handleSave(); }}
                       className="px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 font-medium"
                     >
                       {isSaved ? "Remove Bookmark" : "Bookmark"}
                     </button>
+                    {post.creator_id === "local_user" && (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setShowMenu(false); navigate(`/write?edit=${post.id}`); }}
+                        className="px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 font-medium"
+                      >
+                        Edit story
+                      </button>
+                    )}
                     {!isMobile && onHide && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setShowMenu(false); onHide(post.id); }}

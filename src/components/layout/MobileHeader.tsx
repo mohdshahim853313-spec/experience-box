@@ -1,13 +1,22 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bell, ArrowLeft } from "lucide-react";
+import { useScrollDirection } from "../../hooks/useScrollDirection";
+import { useLocalStorage } from "../../hooks/useShared";
+import { cn } from "../../lib/utils";
 
 export function MobileHeader() {
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === "/";
+  const scrollDirection = useScrollDirection();
+  const [notifications] = useLocalStorage<any[]>("expbox_notifications", []);
+  const hasUnread = notifications.some(n => !n.read);
 
   return (
-    <header className="md:hidden sticky top-0 z-50 w-full h-14 glass flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800">
+    <header className={cn(
+      "md:hidden sticky top-0 z-50 w-full h-14 glass flex items-center justify-between px-4 border-b border-slate-200 transition-transform duration-300",
+      scrollDirection === "down" ? "-translate-y-full" : "translate-y-0"
+    )}>
       <div className="flex items-center gap-2">
         {!isHome && (
           <button onClick={() => navigate(-1)} className="p-1 -ml-1 text-[color:var(--text-primary)]">
@@ -24,7 +33,9 @@ export function MobileHeader() {
       <div className="flex items-center gap-3">
         <Link to="/notifications" className="relative p-1.5 text-[color:var(--text-primary)] opacity-80 hover:opacity-100">
           <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          {hasUnread && (
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          )}
         </Link>
       </div>
     </header>
