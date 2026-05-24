@@ -2,8 +2,9 @@ import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Post } from "../../services/data";
 import { useLocalStorage, useIsMobile } from "../../hooks/useShared";
-import { ArrowUp, ArrowDown, MessageCircle, Share2, MoreHorizontal, UserCircle, IndianRupee, X } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageCircle, Share2, MoreHorizontal, UserCircle, IndianRupee, X } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { motion } from "motion/react";
 
 interface PostCardProps {
   post: Post;
@@ -107,7 +108,11 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
   const displayName = post.is_anonymous ? "Anonymous User" : (post.author_name || "Unknown User");
   
   return (
-    <article 
+    <motion.article 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
       className={cn(
         "glass-card p-4 sm:p-5 max-sm:rounded-none rounded-2xl max-sm:border-x-0 border border-slate-200 flex flex-col h-full relative",
         showMenu ? "z-50" : "z-0"
@@ -197,7 +202,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
                 userVote === 'up' ? "bg-indigo-600 text-white" : "bg-slate-50 hover:bg-indigo-50"
               )}
             >
-              <ArrowUp className={cn("w-4 h-4", userVote === 'up' ? "text-white fill-white" : "text-indigo-500")} strokeWidth={2.5} />
+              <ThumbsUp className={cn("w-4 h-4", userVote === 'up' ? "text-white fill-white" : "text-indigo-500")} strokeWidth={2.5} />
               <span className={cn("text-xs font-bold", userVote === 'up' ? "text-white" : "text-slate-600")}>{displayUpvotes}</span>
             </button>
             <button 
@@ -207,8 +212,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
                 userVote === 'down' ? "bg-red-600 text-white" : "bg-slate-50 hover:bg-slate-100"
               )}
             >
-              <ArrowDown className={cn("w-4 h-4", userVote === 'down' ? "text-white" : "text-slate-500")} strokeWidth={2.5} />
-              <span className={cn("text-xs font-bold", userVote === 'down' ? "text-white" : "text-slate-600")}>{displayDownvotes}</span>
+              <ThumbsDown className={cn("w-4 h-4", userVote === 'down' ? "text-white fill-white" : "text-slate-500")} strokeWidth={2.5} />
             </button>
           </div>
 
@@ -321,6 +325,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
           </div>
         </div>
       )}
-    </article>
+    </motion.article>
   );
 }

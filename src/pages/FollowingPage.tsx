@@ -4,7 +4,7 @@ import { PostCard } from "../components/feed/PostCard";
 import { Users, Search, Star, UserPlus } from "lucide-react";
 import { cn } from "../lib/utils";
 import { useLocalStorage } from "../hooks/useShared";
-import { fetchExperiences, fetchSuggestedFollows } from "../services/supabase";
+import { fetchExperiences, fetchSuggestedFollows } from "../services/db";
 import { Post } from "../services/data";
 
 export function FollowingPage() {

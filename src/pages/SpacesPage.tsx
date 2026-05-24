@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Layout } from "../components/layout/Layout";
 import { Users, Compass, Plus, ChevronRight, Hash } from "lucide-react";
 import { cn } from "../lib/utils";
-import { fetchDiscoverSpaces, fetchYourSpaces } from "../services/supabase";
+import { fetchDiscoverSpaces, fetchYourSpaces } from "../services/db";
 
 export function SpacesPage() {
   const [YOUR_SPACES, setYourSpaces] = useState<any[]>([]);

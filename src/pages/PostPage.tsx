@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "../components/layout/Layout";
 import { MOCK_POSTS, Post } from "../services/data";
-import { ArrowLeft, UserCircle, Share2, MoreHorizontal, MessageCircle, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowLeft, UserCircle, Share2, MoreHorizontal, MessageCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { useLocalStorage, useIsMobile } from "../hooks/useShared";
 import { cn } from "../lib/utils";
 import { PostCard } from "../components/feed/PostCard";
@@ -253,7 +253,7 @@ export function PostPage() {
                     userVote === 'up' ? "bg-indigo-600 text-white" : "hover:bg-indigo-50"
                   )}
                 >
-                  <ArrowUp className={cn("w-4 h-4", userVote === 'up' ? "text-white fill-white" : "text-indigo-500")} strokeWidth={2.5} />
+                  <ThumbsUp className={cn("w-4 h-4", userVote === 'up' ? "text-white fill-white" : "text-indigo-500")} strokeWidth={2.5} />
                   <span className={cn("text-xs font-bold", userVote === 'up' ? "text-white" : "text-slate-600")}>{displayUpvotes}</span>
                 </button>
                 <button 
@@ -263,8 +263,7 @@ export function PostPage() {
                     userVote === 'down' ? "bg-red-600 text-white" : "hover:bg-slate-100"
                   )}
                 >
-                  <ArrowDown className={cn("w-4 h-4", userVote === 'down' ? "text-white" : "text-slate-500")} strokeWidth={2.5} />
-                  <span className={cn("text-xs font-bold", userVote === 'down' ? "text-white" : "text-slate-600")}>{displayDownvotes}</span>
+                  <ThumbsDown className={cn("w-4 h-4", userVote === 'down' ? "text-white fill-white" : "text-slate-500")} strokeWidth={2.5} />
                 </button>
               </div>
 

@@ -1,7 +1,9 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Users, Edit3, Grid, User, Search, Bell, ArrowLeft } from "lucide-react";
+import { Home, Users, Edit3, Grid, User as UserIcon, Search, Bell, ArrowLeft, Box } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useLocalStorage } from "../../hooks/useShared";
+import { useState, useEffect } from "react";
+import { initAuth } from "../../lib/auth";
 
 const NAV_LINKS = [
   { name: "Home", path: "/", icon: Home },
@@ -20,6 +22,16 @@ export function Navbar() {
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Shahim"
   });
 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = initAuth(
+      (user, token) => setIsAuthenticated(true),
+      () => setIsAuthenticated(false)
+    );
+    return () => unsubscribe();
+  }, []);
+
   const [notifications] = useLocalStorage<any[]>("expbox_notifications", []);
   const hasUnread = notifications.some(n => !n.read);
 
@@ -35,7 +47,7 @@ export function Navbar() {
           )}
           <Link to="/" className="flex items-center gap-2">
             <div className="bg-indigo-600 p-1.5 rounded-lg text-white font-bold text-lg leading-none flex items-center justify-center w-8 h-8 cursor-pointer">
-              E
+              <Box className="w-5 h-5" />
             </div>
             <span className="font-bold text-xl tracking-tight text-[color:var(--text-primary)]">ExperienceBox</span>
           </Link>
@@ -72,9 +84,17 @@ export function Navbar() {
               <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-indigo-900"></span>
             )}
           </Link>
-          <Link to="/profile" className="h-9 w-9 rounded-full bg-slate-300 overflow-hidden border-2 border-white hover:scale-110 transition-transform cursor-pointer">
-            <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
-          </Link>
+          
+          {isAuthenticated ? (
+            <Link to="/profile" className="h-9 w-9 rounded-full bg-slate-300 overflow-hidden border-2 border-white hover:scale-110 transition-transform cursor-pointer">
+              <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+            </Link>
+          ) : (
+            <Link to="/login" className="text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-full transition-colors truncate">
+              Log in
+            </Link>
+          )}
+
           <Link
             to="/write"
             className="hidden lg:flex items-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-[0_4px_10px_rgba(79,70,229,0.4)] rounded-full px-5 py-2 text-sm font-semibold transition-all hover:-translate-y-0.5 gap-2"

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Layout } from "../components/layout/Layout";
 import { CategoryScroller } from "../components/feed/CategoryScroller";
 import { PostCard } from "../components/feed/PostCard";
-import { fetchExperiences } from "../services/supabase";
+import { fetchExperiences } from "../services/db";
 import { Post, CATEGORIES, MOCK_POSTS } from "../services/data";
 import { Search, UserCircle, ArrowDownAZ } from "lucide-react";
 import { useIsMobile, useLocalStorage } from "../hooks/useShared";
