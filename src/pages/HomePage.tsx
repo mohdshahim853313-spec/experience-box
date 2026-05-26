@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Layout } from "../components/layout/Layout";
 import { CategoryScroller } from "../components/feed/CategoryScroller";
-import { PostCard } from "../components/feed/PostCard";
+import { PostCard, PostCardSkeleton } from "../components/feed/PostCard";
 import { fetchExperiences } from "../services/db";
 import { Post, CATEGORIES, MOCK_POSTS } from "../services/data";
 import { Search, UserCircle, ArrowDownAZ } from "lucide-react";
@@ -200,8 +200,13 @@ export function HomePage() {
         {/* Feed Layout */}
         <div className="flex-1 w-full">
           {isLoading && posts.length === 0 ? (
-            <div className="flex items-center justify-center p-12 text-slate-500">
-              <div className="animate-spin w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full" />
+            <div className={cn(
+              "w-full px-0",
+              isMobile ? "flex flex-col gap-[6px] bg-slate-200 pb-[6px]" : "grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 bg-transparent"
+            )}>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <PostCardSkeleton key={i} />
+              ))}
             </div>
           ) : filteredPosts.length > 0 ? (
             <div className={cn(

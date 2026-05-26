@@ -1,6 +1,7 @@
 import { StrictMode, useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
+import { Lock } from 'lucide-react';
 import { HomePage } from './pages/HomePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { WritePage } from './pages/WritePage';
@@ -34,13 +35,123 @@ function PlaceholderPage({ title }: { title: string }) {
   );
 }
 
-export default function App() {
-  const [userId, setUserId] = useState<string | undefined>();
+function LoginWall() {
+  const navigate = useNavigate();
+  return (
+    <div className="fixed inset-0 z-[99999] bg-[color:var(--bg-primary)] flex items-center justify-center p-4">
+      <div className="bg-[color:var(--card-bg)] rounded-3xl p-8 max-w-md w-full shadow-2xl text-center border border-slate-200 dark:border-slate-800">
+        <div className="w-16 h-16 bg-indigo-500/10 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Lock className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold mb-3 text-[color:var(--text-primary)]">Time's Up!</h2>
+        <p className="text-[color:var(--text-secondary)] mb-8">
+          You've been freely exploring the app. To continue reading and interacting, please log in or create an account.
+        </p>
+        <button
+          onClick={() => navigate('/login')}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-colors"
+        >
+          Log In Now
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SoftLoginPrompt({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
+  return (
+    <div className="fixed inset-0 z-[90000] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-[color:var(--card-bg)] rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center border border-slate-200 dark:border-slate-800 relative">
+        <div className="w-16 h-16 bg-indigo-500/10 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Lock className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold mb-3 text-[color:var(--text-primary)]">Welcome!</h2>
+        <p className="text-[color:var(--text-secondary)] mb-8">
+          Please log in to experience all features, or you can explore the app freely for a bit.
+        </p>
+        <div className="flex flex-col gap-3">
+            <button
+              onClick={() => { onClose(); navigate('/login'); }}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-colors border-none"
+            >
+              Log In Now
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[color:var(--text-primary)] font-bold py-3 px-4 rounded-xl transition-colors border border-slate-300 dark:border-slate-600"
+            >
+              Not Now
+            </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ActionLoginPrompt({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
+  return (
+    <div className="fixed inset-0 z-[90000] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-[color:var(--card-bg)] rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center border border-slate-200 dark:border-slate-800 relative">
+        <div className="w-16 h-16 bg-indigo-500/10 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Lock className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold mb-3 text-[color:var(--text-primary)]">Login Required</h2>
+        <p className="text-[color:var(--text-secondary)] mb-8">
+          You need to login first to perform this action.
+        </p>
+        <div className="flex flex-col gap-3">
+            <button
+              onClick={() => { onClose(); navigate('/login'); }}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-colors border-none"
+            >
+              Log In Now
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[color:var(--text-primary)] font-bold py-3 px-4 rounded-xl transition-colors border border-slate-300 dark:border-slate-600"
+            >
+              Not Now
+            </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AppContent() {
+  const [userId, setUserId] = useState<string | null | undefined>(undefined);
+  const [forceLoginWall, setForceLoginWall] = useState(false);
+  const [showSoftPrompt, setShowSoftPrompt] = useState(false);
+  const [showActionLogin, setShowActionLogin] = useState(false);
+  const [softPromptDismissed, setSoftPromptDismissed] = useState(
+    sessionStorage.getItem('expbox_soft_prompt_dismissed') === 'true'
+  );
+  const location = useLocation();
+
+  const isTrialExpired = sessionStorage.getItem('expbox_trial_expired') === 'true';
+  
+  // Conditionally show wall during render to avoid flickers
+  const showLoginWall = userId === null && 
+    location.pathname !== '/login' && 
+    (forceLoginWall || isTrialExpired);
+
+  useEffect(() => {
+    if (showLoginWall || showSoftPrompt || showActionLogin) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [showLoginWall, showSoftPrompt, showActionLogin]);
 
   // Init Auth and Sync Profile
   useEffect(() => {
+    localStorage.removeItem('expbox_trial_expired'); // Cleanup old
     const unsubscribe = initAuth((user) => {
       setUserId(user.id);
+      sessionStorage.removeItem('expbox_trial_expired');
+      sessionStorage.removeItem('expbox_soft_prompt_dismissed');
       
       // Fetch user profile from database to sync
       if (supabase) {
@@ -62,10 +173,59 @@ export default function App() {
           });
       }
     }, () => {
-      setUserId(undefined);
+      setUserId(null); // Explicitly null when fully resolved as logged out
     });
 
     return unsubscribe;
+  }, []);
+
+  // Timer logic
+  useEffect(() => {
+    if (userId === null && location.pathname !== '/login') {
+      if (sessionStorage.getItem('expbox_trial_expired')) {
+        setForceLoginWall(true);
+        return;
+      }
+
+      if (!softPromptDismissed) {
+        setShowSoftPrompt(true);
+      } else {
+        const startTimeStr = sessionStorage.getItem('expbox_timer_start');
+        const startTime = startTimeStr ? parseInt(startTimeStr, 10) : Date.now();
+        if (!startTimeStr) {
+           sessionStorage.setItem('expbox_timer_start', startTime.toString());
+        }
+        
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 120000 - elapsed); // 2 minutes
+
+        const timer = setTimeout(() => {
+          sessionStorage.setItem('expbox_trial_expired', 'true');
+          setForceLoginWall(true);
+        }, remaining);
+
+        return () => clearTimeout(timer);
+      }
+    } else if (userId === null && location.pathname === '/login') {
+      setShowSoftPrompt(false);
+    }
+  }, [userId, softPromptDismissed, location.pathname]);
+
+  useEffect(() => {
+    const handleForceLogin = () => {
+      setForceLoginWall(true);
+      sessionStorage.setItem('expbox_trial_expired', 'true'); // ensure subsequent renders know
+    };
+    window.addEventListener('trigger-login-wall', handleForceLogin);
+    return () => window.removeEventListener('trigger-login-wall', handleForceLogin);
+  }, []);
+
+  useEffect(() => {
+    const handleActionLogin = () => {
+      setShowActionLogin(true);
+    };
+    window.addEventListener('trigger-action-login', handleActionLogin);
+    return () => window.removeEventListener('trigger-action-login', handleActionLogin);
   }, []);
 
   // Realtime Notifications integration
@@ -77,28 +237,49 @@ export default function App() {
     }
   });
 
+  const handleDismissSoftPrompt = () => {
+    sessionStorage.setItem('expbox_soft_prompt_dismissed', 'true');
+    sessionStorage.setItem('expbox_timer_start', Date.now().toString());
+    setSoftPromptDismissed(true);
+    setShowSoftPrompt(false);
+  };
+
   return (
-    <BrowserRouter>
+    <>
       <ScrollToTop />
       <Toaster position="top-center" />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/post/:id" element={<PostPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/profile/:userId" element={<ProfilePage />} />
-        <Route path="/following" element={<FollowingPage />} />
-        <Route path="/write" element={<WritePage />} />
-        <Route path="/spaces" element={<SpacesPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/disclaimer" element={<DisclaimerPage />} />
-        <Route path="/report-bug" element={<ReportBugPage />} />
-        <Route path="/donate" element={<DonatePage />} />
-        <Route path="/login" element={<AuthPage />} />
-      </Routes>
+      {showActionLogin && <ActionLoginPrompt onClose={() => setShowActionLogin(false)} />}
+      {showSoftPrompt && <SoftLoginPrompt onClose={handleDismissSoftPrompt} />}
+      {showLoginWall && <LoginWall />}
+      
+      {!showLoginWall && (
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/post/:id" element={<PostPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/:userId" element={<ProfilePage />} />
+          <Route path="/following" element={<FollowingPage />} />
+          <Route path="/write" element={<WritePage />} />
+          <Route path="/spaces" element={<SpacesPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/disclaimer" element={<DisclaimerPage />} />
+          <Route path="/report-bug" element={<ReportBugPage />} />
+          <Route path="/donate" element={<DonatePage />} />
+          <Route path="/login" element={<AuthPage />} />
+        </Routes>
+      )}
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }

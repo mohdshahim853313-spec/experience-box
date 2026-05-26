@@ -5,6 +5,7 @@ import { useLocalStorage, useIsMobile } from "../../hooks/useShared";
 import { ThumbsUp, ThumbsDown, MessageCircle, Share2, MoreHorizontal, UserCircle, IndianRupee, X } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { motion } from "motion/react";
+import { requireAuthAction } from "../../lib/auth";
 
 interface PostCardProps {
   post: Post;
@@ -48,20 +49,24 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
 
   const handleUpvote = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (userVote === 'up') {
-      setUserVotes(prev => ({ ...prev, [post.id]: null }));
-    } else {
-      setUserVotes(prev => ({ ...prev, [post.id]: 'up' }));
-    }
+    requireAuthAction(() => {
+      if (userVote === 'up') {
+        setUserVotes(prev => ({ ...prev, [post.id]: null }));
+      } else {
+        setUserVotes(prev => ({ ...prev, [post.id]: 'up' }));
+      }
+    });
   };
 
   const handleDownvote = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (userVote === 'down') {
-      setUserVotes(prev => ({ ...prev, [post.id]: null }));
-    } else {
-      setUserVotes(prev => ({ ...prev, [post.id]: 'down' }));
-    }
+    requireAuthAction(() => {
+      if (userVote === 'down') {
+        setUserVotes(prev => ({ ...prev, [post.id]: null }));
+      } else {
+        setUserVotes(prev => ({ ...prev, [post.id]: 'down' }));
+      }
+    });
   };
 
   const displayUpvotes = currentUpvotes + (userVote === 'up' ? 1 : 0);
@@ -70,10 +75,12 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
 
   const handleFollow = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (post.is_anonymous) return;
-    const newFollowState = !isFollowing;
-    setIsFollowing(newFollowState);
-    setFollows(prev => ({ ...prev, [post.creator_id]: newFollowState }));
+    requireAuthAction(() => {
+      if (post.is_anonymous) return;
+      const newFollowState = !isFollowing;
+      setIsFollowing(newFollowState);
+      setFollows(prev => ({ ...prev, [post.creator_id]: newFollowState }));
+    });
   };
 
   const handleShare = async () => {
@@ -92,17 +99,19 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
 
   const handleComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
+    requireAuthAction(() => {
+      if (!commentText.trim()) return;
 
-    const newComment = {
-      id: Date.now().toString(),
-      text: commentText,
-      user: "You",
-      date: new Date().toISOString(),
-    };
+      const newComment = {
+        id: Date.now().toString(),
+        text: commentText,
+        user: "You",
+        date: new Date().toISOString(),
+      };
 
-    setPostComments(prev => [newComment, ...(prev || [])]);
-    setCommentText("");
+      setPostComments(prev => [newComment, ...(prev || [])]);
+      setCommentText("");
+    });
   };
 
   const displayName = post.is_anonymous ? "Anonymous User" : (post.author_name || "Unknown User");
@@ -326,5 +335,31 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
         </div>
       )}
     </motion.article>
+  );
+}
+
+export function PostCardSkeleton() {
+  return (
+    <div className="glass-card rounded-2xl p-5 border border-slate-100 shadow-sm animate-pulse mb-4 md:mb-0">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full theme-skeleton" />
+          <div className="flex flex-col gap-2">
+            <div className="h-4 w-32 theme-skeleton rounded" />
+            <div className="h-3 w-20 theme-skeleton rounded" />
+          </div>
+        </div>
+      </div>
+      <div>
+        <div className="h-6 w-3/4 theme-skeleton rounded mb-3" />
+        <div className="h-4 w-full theme-skeleton rounded mb-2" />
+        <div className="h-4 w-5/6 theme-skeleton rounded mb-4" />
+      </div>
+      <div className="flex gap-4 pt-4 border-t border-slate-100">
+        <div className="w-12 h-6 theme-skeleton rounded-full" />
+        <div className="w-12 h-6 theme-skeleton rounded-full" />
+        <div className="w-12 h-6 theme-skeleton rounded-full" />
+      </div>
+    </div>
   );
 }

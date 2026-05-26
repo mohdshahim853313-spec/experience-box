@@ -84,16 +84,16 @@ export function Navbar() {
               <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-indigo-900"></span>
             )}
           </Link>
-          
-          {isAuthenticated ? (
-            <Link to="/profile" className="h-9 w-9 rounded-full bg-slate-300 overflow-hidden border-2 border-white hover:scale-110 transition-transform cursor-pointer">
-              <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
-            </Link>
-          ) : (
-            <Link to="/login" className="text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-full transition-colors truncate">
+
+          {!isAuthenticated && (
+            <Link to="/login" className="text-sm font-bold text-[color:var(--text-primary)] bg-slate-500/10 hover:bg-slate-500/20 px-4 py-2 rounded-full transition-colors truncate">
               Log in
             </Link>
           )}
+          
+          <Link to="/profile" className="h-9 w-9 rounded-full bg-slate-300 overflow-hidden border-2 border-[color:var(--bg-primary)] hover:scale-110 transition-transform cursor-pointer">
+            <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+          </Link>
 
           <Link
             to="/write"

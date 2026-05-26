@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Layout } from "../components/layout/Layout";
-import { PostCard } from "../components/feed/PostCard";
+import { PostCard, PostCardSkeleton } from "../components/feed/PostCard";
 import { Users, Search, Star, UserPlus } from "lucide-react";
 import { cn } from "../lib/utils";
 import { useLocalStorage } from "../hooks/useShared";
@@ -8,10 +8,11 @@ import { fetchExperiences, fetchSuggestedFollows } from "../services/db";
 import { Post } from "../services/data";
 
 export function FollowingPage() {
-  const [follows] = useLocalStorage<Record<string, boolean>>("expbox_follows", {});
+  const [follows, setFollows] = useLocalStorage<Record<string, boolean>>("expbox_follows", {});
   const [posts, setPosts] = useState<Post[]>([]);
   const [suggestedFollows, setSuggestedFollows] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     async function loadData() {
@@ -37,6 +38,11 @@ export function FollowingPage() {
     return posts.filter(post => follows[post.creator_id]);
   }, [posts, follows]);
 
+  const handleFollow = (person: any) => {
+    setFollows({ ...follows, [person.id || person.handle.replace('@', '')]: true });
+    setSuggestedFollows(prev => prev.filter(p => (p.id || p.handle.replace('@', '')) !== (person.id || person.handle.replace('@', ''))));
+  };
+
   return (
     <Layout>
       <div className="flex flex-col md:flex-row gap-6 max-w-6xl mx-auto w-full px-4 md:px-0">
@@ -54,8 +60,10 @@ export function FollowingPage() {
 
           <div className="space-y-6">
             {isLoading ? (
-              <div className="flex items-center justify-center p-12 text-slate-500">
-                <div className="animate-spin w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full" />
+              <div className="flex flex-col gap-6">
+                 {Array.from({ length: 3 }).map((_, i) => (
+                    <PostCardSkeleton key={i} />
+                 ))}
               </div>
             ) : (
               <>
@@ -91,6 +99,8 @@ export function FollowingPage() {
             </div>
             <input 
               type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search people..." 
               className="flex-1 bg-transparent py-2 text-sm font-medium outline-none placeholder:text-slate-400"
             />
@@ -104,7 +114,10 @@ export function FollowingPage() {
               </h3>
             </div>
             <div className="divide-y divide-slate-100">
-              {suggestedFollows.map((person, idx) => (
+              {suggestedFollows
+                .filter(p => !follows[p.id || p.handle?.replace('@', '')])
+                .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.handle?.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map((person, idx) => (
                 <div key={idx} className="p-4 hover:bg-slate-50 transition-colors flex items-start justify-between gap-3 group">
                   <div className="flex gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 border border-white flex items-center justify-center font-bold text-indigo-700 flex-shrink-0">
@@ -118,11 +131,19 @@ export function FollowingPage() {
                       <p className="text-xs text-slate-600 line-clamp-2 mt-1">{person.bio}</p>
                     </div>
                   </div>
-                  <button className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-colors">
+                  <button 
+                    onClick={() => handleFollow(person)}
+                    className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-colors"
+                  >
                     <UserPlus className="w-4 h-4" />
                   </button>
                 </div>
               ))}
+              {suggestedFollows.length > 0 && suggestedFollows.filter(p => !follows[p.id || p.handle?.replace('@', '')]).length === 0 && (
+                <div className="p-4 text-center text-sm font-medium text-slate-500">
+                  You've followed all suggestions!
+                </div>
+              )}
             </div>
             <div className="p-3 border-t border-slate-100">
               <button className="w-full py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">

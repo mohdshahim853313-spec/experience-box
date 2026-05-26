@@ -6,6 +6,7 @@ import { ArrowLeft, UserCircle, Share2, MoreHorizontal, MessageCircle, ThumbsUp,
 import { useLocalStorage, useIsMobile } from "../hooks/useShared";
 import { cn } from "../lib/utils";
 import { PostCard } from "../components/feed/PostCard";
+import { initAuth, requireAuthAction } from "../lib/auth";
 
 export function PostPage() {
   const { id } = useParams<{ id: string }>();
@@ -82,19 +83,23 @@ export function PostPage() {
   };
 
   const handleUpvote = () => {
-    if (userVote === 'up') {
-      setUserVotes(prev => ({ ...prev, [post.id]: null }));
-    } else {
-      setUserVotes(prev => ({ ...prev, [post.id]: 'up' }));
-    }
+    requireAuthAction(() => {
+      if (userVote === 'up') {
+        setUserVotes(prev => ({ ...prev, [post.id]: null }));
+      } else {
+        setUserVotes(prev => ({ ...prev, [post.id]: 'up' }));
+      }
+    });
   };
 
   const handleDownvote = () => {
-    if (userVote === 'down') {
-      setUserVotes(prev => ({ ...prev, [post.id]: null }));
-    } else {
-      setUserVotes(prev => ({ ...prev, [post.id]: 'down' }));
-    }
+    requireAuthAction(() => {
+      if (userVote === 'down') {
+        setUserVotes(prev => ({ ...prev, [post.id]: null }));
+      } else {
+        setUserVotes(prev => ({ ...prev, [post.id]: 'down' }));
+      }
+    });
   };
 
   const displayUpvotes = currentUpvotes + (userVote === 'up' ? 1 : 0);
@@ -102,10 +107,12 @@ export function PostPage() {
   const totalScore = displayUpvotes - displayDownvotes;
 
   const handleFollow = () => {
-    if (post.is_anonymous) return;
-    const newFollowState = !isFollowing;
-    setIsFollowing(newFollowState);
-    setFollows(prev => ({ ...prev, [post.creator_id]: newFollowState }));
+    requireAuthAction(() => {
+      if (post.is_anonymous) return;
+      const newFollowState = !isFollowing;
+      setIsFollowing(newFollowState);
+      setFollows(prev => ({ ...prev, [post.creator_id]: newFollowState }));
+    });
   };
 
   const handleShare = async () => {
@@ -124,33 +131,35 @@ export function PostPage() {
 
   const handleComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
+    requireAuthAction(() => {
+      if (!commentText.trim()) return;
 
-    const newComment = {
-      id: Date.now().toString(),
-      text: commentText,
-      user: "You",
-      date: new Date().toISOString(),
-    };
-
-    setPostComments(prev => [newComment, ...(prev || [])]);
-    setCommentText("");
-
-    // Create a notification for the post owner
-    if (post.creator_id === "local_user") {
-      const newNotification = {
-        id: `notif_${Date.now()}`,
-        type: "comment",
-        user: {
-          name: "Anonymous User",
-          avatar: "👤",
-        },
-        content: `commented on your post "${post.title.substring(0, 30)}..."`,
-        time: "Just now",
-        read: false,
+      const newComment = {
+        id: Date.now().toString(),
+        text: commentText,
+        user: "You",
+        date: new Date().toISOString(),
       };
-      setNotifications(prev => [newNotification, ...(prev || [])]);
-    }
+
+      setPostComments(prev => [newComment, ...(prev || [])]);
+      setCommentText("");
+
+      // Create a notification for the post owner
+      if (post.creator_id === "local_user") {
+        const newNotification = {
+          id: `notif_${Date.now()}`,
+          type: "comment",
+          user: {
+            name: "Anonymous User",
+            avatar: "👤",
+          },
+          content: `commented on your post "${post.title.substring(0, 30)}..."`,
+          time: "Just now",
+          read: false,
+        };
+        setNotifications(prev => [newNotification, ...(prev || [])]);
+      }
+    });
   };
 
   const displayName = post.is_anonymous ? "Anonymous User" : (post.author_name || "Unknown User");

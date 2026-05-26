@@ -49,15 +49,14 @@ export function MobileHeader() {
         </Link>
       </div>
       <div className="flex items-center gap-3">
-        {isAuthenticated ? (
-          <Link to="/profile" className="h-7 w-7 rounded-full bg-slate-300 overflow-hidden border border-white cursor-pointer mr-1">
-            <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
-          </Link>
-        ) : (
-          <Link to="/login" className="text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full transition-colors mr-1">
+        {!isAuthenticated && (
+          <Link to="/login" className="text-xs font-bold text-[color:var(--text-primary)] bg-slate-500/10 hover:bg-slate-500/20 px-3 py-1.5 rounded-full transition-colors">
             Log in
           </Link>
         )}
+        <Link to="/profile" className="h-7 w-7 rounded-full bg-slate-300 overflow-hidden border border-[color:var(--bg-primary)] cursor-pointer">
+          <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+        </Link>
         <Link to="/notifications" className="relative p-1.5 text-[color:var(--text-primary)] opacity-80 hover:opacity-100">
           <Bell className="w-5 h-5" />
           {hasUnread && (

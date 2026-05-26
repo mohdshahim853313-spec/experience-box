@@ -5,10 +5,24 @@ import { MobileHeader } from "./MobileHeader";
 import { useLocalStorage } from "../../hooks/useShared";
 
 export function Layout({ children }: { children: ReactNode }) {
-  const [theme] = useLocalStorage("expbox_theme", "minimal");
+  const [theme] = useLocalStorage("expbox_theme", "system");
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
+    let activeTheme = theme;
+    if (activeTheme === 'system') {
+      activeTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'midnight' : 'minimal';
+    }
+    document.documentElement.setAttribute("data-theme", activeTheme);
+    
+    // Add listener for system theme changes if needed
+    if (theme === 'system') {
+       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+       const handleChange = (e: MediaQueryListEvent) => {
+         document.documentElement.setAttribute("data-theme", e.matches ? 'midnight' : 'minimal');
+       };
+       mediaQuery.addEventListener('change', handleChange);
+       return () => mediaQuery.removeEventListener('change', handleChange);
+    }
   }, [theme]);
 
   return (

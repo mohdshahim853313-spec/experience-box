@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "../components/layout/Layout";
 import { Bell, Heart, MessageCircle, UserPlus, Star } from "lucide-react";
 import { cn } from "../lib/utils";
@@ -65,6 +65,17 @@ export function NotificationsPage() {
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [notifications, setNotifications] = useLocalStorage<Notification[]>("expbox_notifications", []);
 
+  useEffect(() => {
+    if (notifications.length === 0 && !localStorage.getItem("expbox_notifications_cleared")) {
+      setNotifications(MOCK_NOTIFICATIONS);
+    }
+  }, []);
+
+  const clearNotifications = () => {
+    setNotifications([]);
+    localStorage.setItem("expbox_notifications_cleared", "true");
+  };
+
   const getIcon = (type: NotificationType) => {
     switch (type) {
       case "like": return <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />;
@@ -94,12 +105,20 @@ export function NotificationsPage() {
             </div>
           </div>
           
-          <button 
-            onClick={markAllAsRead}
-            className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
-          >
-            Mark all as read
-          </button>
+          <div className="flex gap-4">
+            <button 
+              onClick={markAllAsRead}
+              className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
+            >
+              Mark all as read
+            </button>
+            <button 
+              onClick={clearNotifications}
+              className="text-sm font-bold text-rose-600 hover:text-rose-700 hover:underline"
+            >
+              Clear
+            </button>
+          </div>
         </div>
 
         <div className="glass-card rounded-2xl border border-slate-200 overflow-hidden bg-white/50">
@@ -135,13 +154,16 @@ export function NotificationsPage() {
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                   <Bell className="w-8 h-8 text-slate-300" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-700 mb-1">No notifications yet</h3>
+                <h3 className="text-lg font-bold text-slate-700 mb-1">No notifications matched</h3>
                 <p className="text-slate-500 text-sm">When you get notifications, they'll show up here.</p>
               </div>
             ) : (
               filteredNotifications.map((notification) => (
                 <div 
                   key={notification.id} 
+                  onClick={() => {
+                     setNotifications(notifications.map(n => n.id === notification.id ? { ...n, read: true } : n));
+                  }}
                   className={cn(
                     "p-4 flex gap-4 hover:bg-slate-50 transition-colors cursor-pointer group",
                     !notification.read ? "bg-indigo-50" : ""

@@ -1,7 +1,17 @@
 import { supabase } from './supabase';
 import { User } from '@supabase/supabase-js';
+import toast from 'react-hot-toast';
 
 let cachedAccessToken: string | null = null;
+let currentSessionUser: User | null = null;
+
+export const requireAuthAction = (callback: Function) => {
+  if (!currentSessionUser) {
+    window.dispatchEvent(new Event('trigger-action-login'));
+    return;
+  }
+  callback();
+};
 
 export const initAuth = (
   onAuthSuccess?: (user: User, token?: string | null) => void,
@@ -15,9 +25,11 @@ export const initAuth = (
   supabase.auth.getSession().then(({ data: { session } }) => {
     if (session?.user) {
       cachedAccessToken = session.access_token;
+      currentSessionUser = session.user;
       if (onAuthSuccess) onAuthSuccess(session.user, cachedAccessToken);
     } else {
       cachedAccessToken = null;
+      currentSessionUser = null;
       if (onAuthFailure) onAuthFailure();
     }
   });
@@ -25,9 +37,11 @@ export const initAuth = (
   const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
     if (session?.user) {
       cachedAccessToken = session.access_token;
+      currentSessionUser = session.user;
       if (onAuthSuccess) onAuthSuccess(session.user, cachedAccessToken);
     } else {
       cachedAccessToken = null;
+      currentSessionUser = null;
       if (onAuthFailure) onAuthFailure();
     }
   });
@@ -38,10 +52,14 @@ export const initAuth = (
 export const googleSignIn = async (): Promise<{ user: User; accessToken: string } | null> => {
   if (!supabase) throw new Error("Supabase is not configured.");
   
+  const redirectUrl = (window.location.origin === "null" || !window.location.origin)
+    ? undefined
+    : window.location.origin;
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin
+      redirectTo: redirectUrl
     }
   });
   

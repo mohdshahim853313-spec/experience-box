@@ -7,7 +7,7 @@ import { Share, Image as ImageIcon, ArrowLeft, Plus, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { createExperience } from '../services/db';
 import { useLocalStorage } from '../hooks/useShared';
-import { initAuth } from '../lib/auth';
+import { initAuth, requireAuthAction } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 
 const CATEGORY_DETAILS = [
@@ -133,64 +133,66 @@ export function WritePage() {
   }, [showEditor]);
 
   const handlePublish = async () => {
-    const existingPostsStr = localStorage.getItem("expbox_user_posts");
-    let existingPosts = existingPostsStr ? JSON.parse(existingPostsStr) : [];
-    
-    // get user from Supabase
-    let currentUser = null;
-    if (supabase) {
-      const { data: { session } } = await supabase.auth.getSession();
-      currentUser = session?.user;
-    }
-    
-    const uid = currentUser?.id || "local_user";
-    const authorName = currentUser?.user_metadata?.display_name || user?.name || "Local User";
-    const authorAvatar = currentUser?.user_metadata?.avatar_url || user?.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=Local";
-
-    if (editId) {
-      existingPosts = existingPosts.map((p: any) => {
-        if (p.id === editId) {
-          const updated = {
-            ...p,
-            title: title.trim(),
-            teaser: quillRef.current?.getText().substring(0, 200) + "...",
-            content: content,
-            category: category,
-          };
-          if (currentUser) {
-            // Note: In a full app we'd call an update function on DB here
-            createExperience(updated, editId).catch(console.error);
-          }
-          return updated;
-        }
-        return p;
-      });
-    } else {
-      const newPostId = "u_" + Date.now().toString();
-      const newPost = {
-        title: title.trim(),
-        teaser: quillRef.current?.getText().substring(0, 200) + "...",
-        content: content,
-        category: category,
-        price: 0,
-        created_at: new Date().toISOString(),
-        creator_id: uid,
-        is_anonymous: false,
-        author_name: authorName,
-        author_avatar: authorAvatar
-      };
+    requireAuthAction(async () => {
+      const existingPostsStr = localStorage.getItem("expbox_user_posts");
+      let existingPosts = existingPostsStr ? JSON.parse(existingPostsStr) : [];
       
-      if (currentUser) {
-        await createExperience(newPost as any, newPostId);
+      // get user from Supabase
+      let currentUser = null;
+      if (supabase) {
+        const { data: { session } } = await supabase.auth.getSession();
+        currentUser = session?.user;
       }
-      existingPosts.push({ id: newPostId, ...newPost });
-    }
-    
-    if (!editId) {
-      localStorage.removeItem('expbox_write_draft');
-    }
-    localStorage.setItem("expbox_user_posts", JSON.stringify(existingPosts));
-    navigate("/");
+      
+      const uid = currentUser?.id || "local_user";
+      const authorName = currentUser?.user_metadata?.display_name || user?.name || "Local User";
+      const authorAvatar = currentUser?.user_metadata?.avatar_url || user?.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=Local";
+
+      if (editId) {
+        existingPosts = existingPosts.map((p: any) => {
+          if (p.id === editId) {
+            const updated = {
+              ...p,
+              title: title.trim(),
+              teaser: quillRef.current?.getText().substring(0, 200) + "...",
+              content: content,
+              category: category,
+            };
+            if (currentUser) {
+              // Note: In a full app we'd call an update function on DB here
+              createExperience(updated, editId).catch(console.error);
+            }
+            return updated;
+          }
+          return p;
+        });
+      } else {
+        const newPostId = "u_" + Date.now().toString();
+        const newPost = {
+          title: title.trim(),
+          teaser: quillRef.current?.getText().substring(0, 200) + "...",
+          content: content,
+          category: category,
+          price: 0,
+          created_at: new Date().toISOString(),
+          creator_id: uid,
+          is_anonymous: false,
+          author_name: authorName,
+          author_avatar: authorAvatar
+        };
+        
+        if (currentUser) {
+          await createExperience(newPost as any, newPostId);
+        }
+        existingPosts.push({ id: newPostId, ...newPost });
+      }
+      
+      if (!editId) {
+        localStorage.removeItem('expbox_write_draft');
+      }
+      localStorage.setItem("expbox_user_posts", JSON.stringify(existingPosts));
+      navigate("/");
+    });
   };
   
   const handleCustomCategorySubmit = (e: React.FormEvent) => {

@@ -6,12 +6,10 @@
 
 /* Theme Variables */
 :root {
-  --bg-color: #f3f4f6;
-  --bg-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-              radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-              radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-  --card-bg: rgba(255, 255, 255, 0.85);
-  --text-primary: #1e293b;
+  --bg-color: #f5f6f7;
+  --bg-image: none;
+  --card-bg: #ffffff;
+  --text-primary: #282829;
 }
 
 [data-theme='midnight'] {
@@ -93,6 +91,10 @@
   background: var(--card-bg);
 }
 
+[data-theme='midnight'] .theme-skeleton {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
 [data-theme='minimal'] {
   --bg-color: #f5f6f7;
   --bg-image: none;
@@ -123,6 +125,10 @@ body {
 
 .glass-card:hover {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.theme-skeleton {
+  background-color: #e2e8f0;
 }
 
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
