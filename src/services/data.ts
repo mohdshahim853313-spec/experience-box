@@ -30,7 +30,7 @@ export const MOCK_POSTS: Post[] = [
     category: "Reality Check",
     price: 0,
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    creator_id: "user_1",
+    creator_id: "11111111-1111-1111-1111-111111111111",
     is_anonymous: false,
     author_name: "Sarah Jenkins",
     author_avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Sarah"
@@ -43,7 +43,7 @@ export const MOCK_POSTS: Post[] = [
     category: "Mistakes",
     price: 0,
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-    creator_id: "user_2",
+    creator_id: "11111111-1111-1111-1111-111111111111",
     is_anonymous: false,
     author_name: "Michael Chen",
     author_avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Michael"
@@ -56,7 +56,7 @@ export const MOCK_POSTS: Post[] = [
     category: "Embarrassing",
     price: 49,
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-    creator_id: "user_3",
+    creator_id: "11111111-1111-1111-1111-111111111111",
     is_anonymous: false,
     author_name: "Jessica Walsh",
     author_avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Jessica"
@@ -69,7 +69,7 @@ export const MOCK_POSTS: Post[] = [
     category: "Ground Reality",
     price: 0,
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
-    creator_id: "anon_1",
+    creator_id: "00000000-0000-0000-0000-000000000000",
     is_anonymous: true,
   },
   {
@@ -80,7 +80,7 @@ export const MOCK_POSTS: Post[] = [
     category: "Experiences",
     price: 99,
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
-    creator_id: "user_5",
+    creator_id: "11111111-1111-1111-1111-111111111111",
     is_anonymous: false,
     author_name: "David R.",
     author_avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=David"

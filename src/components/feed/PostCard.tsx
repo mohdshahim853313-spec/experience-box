@@ -137,7 +137,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
           onClick={(e) => {
             if (!post.is_anonymous) {
               e.stopPropagation();
-              navigate(post.creator_id === "local_user" ? "/profile" : `/profile/${post.creator_id}`);
+              navigate(post.creator_id === "11111111-1111-1111-1111-111111111111" ? "/profile" : `/profile/${post.creator_id}`);
             }
           }}
         >
@@ -146,7 +146,16 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
               <UserCircle className="w-6 h-6 text-slate-400" />
             </div>
           ) : (
-            <img src={post.author_avatar} alt={displayName} className="w-8 h-8 rounded-full bg-slate-100 object-cover" />
+            <img 
+              src={post.author_avatar} 
+              alt={displayName} 
+              className="w-8 h-8 rounded-full bg-slate-100 object-cover" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent('trigger-avatar-viewer', { detail: { src: post.author_avatar } }));
+              }}
+            />
           )}
           
           <div className="flex flex-col">
@@ -207,8 +216,8 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
             <button 
               onClick={handleUpvote}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 border-r border-slate-200 transition-all active:scale-95",
-                userVote === 'up' ? "bg-indigo-600 text-white" : "bg-slate-50 hover:bg-indigo-50"
+                "flex items-center gap-1.5 px-3 py-1.5 border-r border-slate-200 dark:border-slate-700 transition-all active:scale-95",
+                userVote === 'up' ? "bg-indigo-600 text-white" : "bg-slate-50 dark:bg-slate-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600"
               )}
             >
               <ThumbsUp className={cn("w-4 h-4", userVote === 'up' ? "text-white fill-white" : "text-indigo-500")} strokeWidth={2.5} />
@@ -218,7 +227,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
               onClick={handleDownvote}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 transition-all active:scale-95",
-                userVote === 'down' ? "bg-red-600 text-white" : "bg-slate-50 hover:bg-slate-100"
+                userVote === 'down' ? "bg-red-600 text-white" : "bg-slate-50 dark:bg-slate-800/50 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500"
               )}
             >
               <ThumbsDown className={cn("w-4 h-4", userVote === 'down' ? "text-white fill-white" : "text-slate-500")} strokeWidth={2.5} />
@@ -229,8 +238,8 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
             <button 
                onClick={() => setShowComments(!showComments)}
                className={cn(
-                 "flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all px-3 py-1.5 rounded-full font-medium text-xs md:text-sm",
-                 showComments && "text-indigo-600 bg-indigo-50"
+                 "flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/80 dark:hover:bg-indigo-500/20 transition-all px-3 py-1.5 rounded-full font-medium text-xs md:text-sm",
+                 showComments && "text-indigo-600 bg-indigo-50 dark:bg-indigo-500/20"
                )}
             >
               <MessageCircle className="w-[18px] h-[18px] md:w-5 md:h-5" strokeWidth={2} />
@@ -239,14 +248,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
 
             <button 
               onClick={handleShare}
-              className="text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all p-2 md:px-3 md:py-1.5 rounded-full flex items-center gap-1.5 hidden sm:flex"
+              className="text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/80 dark:hover:bg-indigo-500/20 transition-all p-2 md:px-3 md:py-1.5 rounded-full flex items-center gap-1.5 hidden sm:flex"
             >
               <Share2 className="w-[18px] h-[18px] md:w-5 md:h-5" strokeWidth={2} />
               <span className="text-xs md:text-sm font-medium">Share</span>
             </button>
             <button 
               onClick={handleShare}
-              className="text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all p-2 rounded-full sm:hidden"
+              className="text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/80 dark:hover:bg-indigo-500/20 transition-all p-2 rounded-full sm:hidden"
             >
               <Share2 className="w-5 h-5" strokeWidth={2} />
             </button>
@@ -254,7 +263,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
             <div className="relative">
               <button 
                 onClick={() => setShowMenu(!showMenu)}
-                className="text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all p-2 rounded-full"
+                className="text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/80 dark:hover:bg-indigo-500/20 transition-all p-2 rounded-full"
               >
                 <MoreHorizontal className="w-5 h-5" strokeWidth={2} />
               </button>
@@ -265,14 +274,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
                   <div className="absolute right-0 bottom-[calc(100%+8px)] sm:bottom-auto sm:top-full mb-2 w-48 bg-[var(--card-bg)] border border-slate-200 shadow-xl rounded-lg py-1 z-20 overflow-hidden flex flex-col">
                     <button 
                       onClick={(e) => { e.stopPropagation(); setShowMenu(false); handleSave(); }}
-                      className="px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 font-medium"
+                      className="px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400 font-medium transition-colors cursor-pointer"
                     >
                       {isSaved ? "Remove Bookmark" : "Bookmark"}
                     </button>
-                    {post.creator_id === "local_user" && (
+                    {post.creator_id === "11111111-1111-1111-1111-111111111111" && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setShowMenu(false); navigate(`/write?edit=${post.id}`); }}
-                        className="px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 font-medium"
+                        className="px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400 font-medium transition-colors cursor-pointer"
                       >
                         Edit story
                       </button>
@@ -280,14 +289,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
                     {!isMobile && onHide && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setShowMenu(false); onHide(post.id); }}
-                        className="px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 font-medium"
+                        className="px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400 font-medium transition-colors cursor-pointer"
                       >
                         Hide story
                       </button>
                     )}
                     <button 
                       onClick={(e) => { e.stopPropagation(); setShowMenu(false); alert("Post reported."); }}
-                      className="px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 font-medium"
+                      className="px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium transition-colors cursor-pointer"
                     >
                       Report
                     </button>
@@ -309,8 +318,11 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
             />
-            <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors">
-              Post
+            <button 
+              disabled={!commentText.trim()}
+              className="bg-indigo-600 disabled:bg-indigo-400 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors"
+            >
+              Comment
             </button>
           </form>
 

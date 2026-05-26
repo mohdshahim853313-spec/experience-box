@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { Layout } from '../components/layout/Layout';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
@@ -11,11 +12,11 @@ import { initAuth, requireAuthAction } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 
 const CATEGORY_DETAILS = [
-  { id: "Experiences", emoji: "🧘‍♂️", name: "Experience", desc: "Personal journey" },
-  { id: "Mistakes", emoji: "❌", name: "Mistake", desc: "What went wrong" },
-  { id: "Ground Reality", emoji: "🌍", name: "Ground Reality", desc: "Truth vs Hype" },
-  { id: "Reality Check", emoji: "🎭", name: "Reality Check", desc: "Expectation vs Reality" },
-  { id: "Embarrassing", emoji: "🙈", name: "Embarrassing", desc: "Cringe moments" },
+  { id: "Experiences", emoji: "🧘‍♂️", bg: "bg-amber-100", name: "Experience", desc: "Personal journey" },
+  { id: "Mistakes", emoji: "❌", bg: "bg-red-100", name: "Mistake", desc: "What went wrong" },
+  { id: "Ground Reality", emoji: "🌍", bg: "bg-emerald-100", name: "Ground Reality", desc: "Truth vs Hype" },
+  { id: "Reality Check", emoji: "🎭", bg: "bg-purple-100", name: "Reality Check", desc: "Expectation vs Reality" },
+  { id: "Embarrassing", emoji: "🙈", bg: "bg-pink-100", name: "Embarrassing", desc: "Cringe moments" },
 ];
 
 export function WritePage() {
@@ -66,7 +67,6 @@ export function WritePage() {
             setContent(draft.content || '');
             if (draft.category) {
               setCategory(draft.category);
-              setShowEditor(true);
             }
           }
         } catch(e) {}
@@ -115,7 +115,7 @@ export function WritePage() {
             [{ 'header': [1, 2, false] }],
             ['bold', 'italic', 'underline', 'strike', 'blockquote'],
             [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
-            ['link', 'image'],
+            ['link'],
             ['clean']
           ]
         }
@@ -144,7 +144,7 @@ export function WritePage() {
         currentUser = session?.user;
       }
       
-      const uid = currentUser?.id || "local_user";
+      const uid = currentUser?.id || "11111111-1111-1111-1111-111111111111";
       const authorName = currentUser?.user_metadata?.display_name || user?.name || "Local User";
       const authorAvatar = currentUser?.user_metadata?.avatar_url || user?.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=Local";
 
@@ -216,22 +216,35 @@ export function WritePage() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {CATEGORY_DETAILS.map(cat => (
-                <div 
+                <motion.div 
                   key={cat.id} 
-                  className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center transition-all hover:shadow-md hover:-translate-y-1 cursor-pointer" 
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center cursor-pointer" 
                   onClick={() => { setCategory(cat.id); setShowEditor(true); }}
                 >
-                  <div className="text-6xl mb-4" style={{filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.1))"}}>{cat.emoji}</div>
+                  <div className={cn("w-20 h-20 rounded-full flex items-center justify-center mb-4 transition-transform hover:scale-110", cat.bg)} style={{filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.1))"}}>
+                    <span className="text-4xl">{cat.emoji}</span>
+                  </div>
                   <h3 className="text-xl font-bold text-slate-800 mb-2">{cat.name}</h3>
                   <p className="text-slate-500 mb-8">{cat.desc}</p>
-                  <button className="w-full bg-[#f1f5f9] text-indigo-600 hover:bg-indigo-50 font-semibold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2">
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.9 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                    className="w-full bg-indigo-50/30 dark:bg-slate-800/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50/80 dark:hover:bg-indigo-500/20 font-semibold py-3 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2"
+                  >
                      ✍️ Write This
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
               ))}
 
-              <div 
-                className="bg-white p-8 rounded-3xl shadow-sm border-2 border-dashed border-slate-200 flex flex-col items-center text-center transition-all hover:shadow-md hover:-translate-y-1 hover:border-indigo-200 cursor-pointer" 
+              <motion.div 
+                whileHover={{ y: -4, scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="bg-white p-8 rounded-3xl shadow-sm border-2 border-dashed border-slate-200 flex flex-col items-center text-center hover:border-indigo-200 cursor-pointer" 
                 onClick={() => setIsCustomCatOpen(true)}
               >
                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 mt-2">
@@ -239,10 +252,15 @@ export function WritePage() {
                 </div>
                 <h3 className="text-xl font-bold text-slate-800 mb-2">Custom</h3>
                 <p className="text-slate-500 mb-8">Create your own category</p>
-                <button className="w-full bg-[#f1f5f9] text-slate-700 hover:bg-slate-100 font-semibold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                  className="w-full bg-indigo-50/30 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 hover:bg-indigo-50/80 dark:hover:bg-indigo-500/20 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold py-3 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2"
+                >
                     ✨ Add New
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             </div>
             
             {/* Custom Category Modal */}
@@ -251,9 +269,15 @@ export function WritePage() {
                 <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 glass-card" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-slate-900">Custom Category</h2>
-                    <button onClick={() => setIsCustomCatOpen(false)} className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors">
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                      onClick={() => setIsCustomCatOpen(false)} 
+                      className="p-2 text-slate-400 hover:text-indigo-600 dark:text-slate-500 dark:hover:text-indigo-400 hover:bg-indigo-50/80 dark:hover:bg-indigo-500/20 rounded-full transition-all duration-300"
+                    >
                       <X className="w-5 h-5" />
-                    </button>
+                    </motion.button>
                   </div>
                   <form onSubmit={handleCustomCategorySubmit}>
                     <div className="mb-6">
@@ -268,20 +292,26 @@ export function WritePage() {
                       />
                     </div>
                     <div className="flex gap-3">
-                      <button 
+                      <motion.button 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 20 }}
                         type="button"
                         onClick={() => setIsCustomCatOpen(false)}
-                        className="flex-1 py-3 font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                        className="flex-1 py-3 font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50/80 dark:hover:bg-indigo-500/20 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-all duration-300"
                       >
                         Cancel
-                      </button>
-                      <button 
+                      </motion.button>
+                      <motion.button 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 20 }}
                         type="submit"
                         disabled={!customCategory.trim()}
-                        className="flex-1 py-3 font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-xl transition-all"
+                        className="flex-1 py-3 font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-xl transition-colors"
                       >
                         Continue
-                      </button>
+                      </motion.button>
                     </div>
                   </form>
                 </div>
@@ -292,7 +322,10 @@ export function WritePage() {
           <>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
                   onClick={() => {
                     if (editId) {
                       navigate(-1);
@@ -300,46 +333,49 @@ export function WritePage() {
                       setShowEditor(false);
                     }
                   }}
-                  className="p-2 -ml-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                  className="p-2 -ml-2 text-slate-400 hover:text-indigo-600 dark:text-slate-500 dark:hover:text-indigo-400 hover:bg-indigo-50/80 dark:hover:bg-indigo-500/20 rounded-full transition-all duration-300"
                 >
                   <ArrowLeft className="w-5 h-5" />
-                </button>
+                </motion.button>
                 <div>
-                  <h1 className="text-2xl font-bold text-slate-800 leading-tight">Write a Story</h1>
-                  <p className="text-sm text-indigo-600 font-medium">in {category}</p>
+                  <h1 className="text-2xl font-bold text-slate-800 dark:text-white leading-tight">Write a Story</h1>
+                  <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">in {category}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
                 {draftStatus && (
-                  <span className="text-xs font-medium text-slate-400 italic">
+                  <span className="text-xs font-medium text-slate-400 dark:text-slate-500 italic">
                     {draftStatus}
                   </span>
                 )}
                 
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
                   onClick={handlePublish}
                   disabled={!title.trim() || !content.trim() || content === '<p><br></p>'}
                   className={cn(
-                    "flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all shadow-sm",
+                    "flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm shadow-sm",
                     title.trim() && content.trim() && content !== '<p><br></p>'
-                      ? "bg-indigo-600 text-white shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5" 
-                      : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                      ? "bg-indigo-600 text-white shadow-indigo-200 dark:shadow-none hover:bg-indigo-700" 
+                      : "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed"
                   )}
                 >
                   <Share className="w-4 h-4" />
                   {editId ? "Save Changes" : "Publish"}
-                </button>
+                </motion.button>
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col transition-colors">
               {/* Editor Header / Meta */}
-              <div className="p-6 sm:p-8 border-b border-slate-100 space-y-4">
+              <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-800 space-y-4 transition-colors">
                 <input
                   type="text"
                   placeholder="Story Title..."
-                  className="w-full text-3xl sm:text-4xl font-extrabold text-slate-900 placeholder:text-slate-300 outline-none bg-transparent"
+                  className="w-full text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-700 outline-none bg-transparent transition-colors"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                 />

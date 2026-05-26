@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is([data-theme="midnight"] *));
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
@@ -155,8 +157,8 @@ body {
   border-top: none !important;
   border-left: none !important;
   border-right: none !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  background-color: #f8fafc;
+  border-bottom: 2px solid var(--ql-border, #e0e7ff) !important;
+  background-color: var(--ql-toolbar-bg, #eef2ff) !important;
   padding: 12px 16px !important;
 }
 
@@ -169,11 +171,52 @@ body {
 .write-editor .ql-editor {
   padding: 24px !important;
   min-height: 400px;
-  color: #334155;
+  color: var(--ql-text, #334155);
   line-height: 1.7;
 }
 
 .write-editor .ql-editor.ql-blank::before {
-  color: #94a3b8;
+  color: var(--ql-placeholder, #94a3b8);
   font-style: italic;
+}
+
+[data-theme='midnight'] .write-editor {
+  --ql-border: #312e81;
+  --ql-toolbar-bg: rgba(49, 46, 129, 0.2);
+  --ql-text: #cbd5e1;
+  --ql-placeholder: #475569;
+}
+
+[data-theme='midnight'] .write-editor .ql-stroke {
+  stroke: #94a3b8 !important;
+}
+[data-theme='midnight'] .write-editor .ql-fill {
+  fill: #94a3b8 !important;
+}
+[data-theme='midnight'] .write-editor .ql-picker {
+  color: #94a3b8 !important;
+}
+[data-theme='midnight'] .write-editor .ql-picker-options {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+[data-theme='midnight'] .write-editor .ql-picker-item:hover,
+[data-theme='midnight'] .write-editor .ql-picker-label:hover {
+  color: #f1f5f9 !important;
+}
+[data-theme='midnight'] .write-editor .ql-picker-item:hover .ql-stroke,
+[data-theme='midnight'] .write-editor .ql-picker-label:hover .ql-stroke {
+  stroke: #f1f5f9 !important;
+}
+[data-theme='midnight'] .write-editor .ql-picker-item:hover .ql-fill,
+[data-theme='midnight'] .write-editor .ql-picker-label:hover .ql-fill {
+  fill: #f1f5f9 !important;
+}
+[data-theme='midnight'] .write-editor button:hover .ql-stroke,
+[data-theme='midnight'] .write-editor button.ql-active .ql-stroke {
+  stroke: #f1f5f9 !important;
+}
+[data-theme='midnight'] .write-editor button:hover .ql-fill,
+[data-theme='midnight'] .write-editor button.ql-active .ql-fill {
+  fill: #f1f5f9 !important;
 }

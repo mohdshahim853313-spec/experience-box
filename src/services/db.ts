@@ -28,10 +28,30 @@ export async function fetchExperiences(): Promise<Post[]> {
     try {
       const { data, error } = await supabase.from('experiences').select('*').order('created_at', { ascending: false });
       if (!error && data) {
-        combinedPosts = data.map(exp => ({
-          ...exp,
-          content: exp.context_situation || exp.content || '',
-        })) as Post[];
+        combinedPosts = data.map(exp => {
+          let author_name = exp.author_name;
+          let author_avatar = exp.author_avatar;
+          
+          if (!author_name) {
+             if (exp.creator_id === "11111111-1111-1111-1111-111111111111") {
+                try {
+                  const localProfile = JSON.parse(localStorage.getItem('expbox_user_profile') || '{}');
+                  author_name = localProfile.name || "Mohd Shahim";
+                  author_avatar = localProfile.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=Shahim";
+                } catch(e) {}
+             } else if (exp.creator_id && exp.creator_id !== "00000000-0000-0000-0000-000000000000") {
+                author_name = "User " + exp.creator_id.substring(0, 5);
+                author_avatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${exp.creator_id}`;
+             }
+          }
+
+          return {
+            ...exp,
+            author_name,
+            author_avatar,
+            content: exp.context_situation || exp.content || '',
+          };
+        }) as Post[];
       }
     } catch (err) {
       console.warn("Supabase fetch failed, using fallback.", err);
@@ -73,7 +93,6 @@ export async function createExperience(postData: Omit<Post, 'id'>, postId: strin
       status: 'published'
     };
     
-    // We omit author_name and author_avatar as those should probably come from profiles in a relational setup
     const { error } = await supabase.from('experiences').upsert(dbPayload);
     if (error) {
       console.error('Supabase Error: ', JSON.stringify(error));

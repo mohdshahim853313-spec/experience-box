@@ -6,6 +6,7 @@ import { Camera, User, Shield, Palette, Settings as SettingsIcon, LogOut, Moon, 
 import { cn } from "../lib/utils";
 import { MOCK_POSTS } from "../services/data";
 import { initAuth, googleSignIn, logout, getAccessToken } from "../lib/auth";
+import { supabase } from "../lib/supabase";
 
 const THEMES = [
   { id: "minimal", name: "Light Mode", icon: Sun, color: "bg-slate-500" },
@@ -129,7 +130,7 @@ export function ProfilePage() {
     setAuthToken(null);
   };
   
-  const isOwnProfile = !userId || userId === "local_user";
+  const isOwnProfile = !userId || userId === "11111111-1111-1111-1111-111111111111";
   const [activeTab, setActiveTab ] = useState<"posts" | "followers" | "following" | null>(null);
   const [follows, setFollows] = useLocalStorage<Record<string, boolean>>("expbox_follows", {});
 
@@ -140,7 +141,7 @@ export function ProfilePage() {
         email: user.email,
         avatar: user.avatar,
         bio: "Passionate storyteller on ExperienceBox. Sharing my actual, raw, unedited life realities.",
-        id: "local_user"
+        id: "11111111-1111-1111-1111-111111111111"
       };
     }
     
@@ -187,7 +188,7 @@ export function ProfilePage() {
     const allPosts = [...localPosts, ...MOCK_POSTS];
     return allPosts.filter(p => {
       if (isOwnProfile) {
-        return p.creator_id === "local_user";
+        return p.creator_id === "11111111-1111-1111-1111-111111111111";
       }
       return p.creator_id === activeUser.id;
     });
@@ -214,7 +215,7 @@ export function ProfilePage() {
     
     if (isFollowingActor) {
       list.push({
-        id: "local_user",
+        id: "11111111-1111-1111-1111-111111111111",
         name: user.name,
         avatar: user.avatar,
         bio: "Passionate storyteller on ExperienceBox. Sharing actual raw life realities."
@@ -261,6 +262,8 @@ export function ProfilePage() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendingAvatar, setPendingAvatar] = useState(user.avatar);
+  const [pendingName, setPendingName] = useState("");
+  const [pendingBio, setPendingBio] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -304,9 +307,25 @@ export function ProfilePage() {
     reader.readAsDataURL(file);
   };
 
-  const saveAvatar = () => {
-    setUser({ ...user, avatar: pendingAvatar });
+  const saveProfile = async () => {
+    const updated = { ...user, avatar: pendingAvatar, name: pendingName, bio: pendingBio };
+    setUser(updated);
     setIsModalOpen(false);
+    
+    // Dispatch local-storage event to notify other components
+    window.dispatchEvent(new Event("local-storage"));
+    
+    if (supabase && userId && userId !== '11111111-1111-1111-1111-111111111111') {
+      try {
+        await supabase.from('profiles').update({
+          username: pendingName,
+          bio: pendingBio,
+          avatar_url: pendingAvatar
+        }).eq('id', userId);
+      } catch (e) {
+        console.error("Failed to update profile", e);
+      }
+    }
   };
 
   return (
@@ -333,30 +352,39 @@ export function ProfilePage() {
         {/* Profile Card */}
         <div className="glass-card p-8 rounded-3xl flex flex-col items-center text-center">
           <div 
-            className={cn(
-              "relative mb-4 group",
-              isOwnProfile ? "cursor-pointer" : "cursor-default"
-            )} 
-            onClick={() => { 
-              if (isOwnProfile) {
-                setPendingAvatar(user.avatar); 
-                setIsModalOpen(true); 
+            className="relative mb-4 group cursor-pointer"
+            onClick={(e) => { 
+              if (activeUser.avatar) {
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent('trigger-avatar-viewer', { detail: { src: activeUser.avatar } }));
               }
             }}
           >
             <div className="w-24 h-24 rounded-full border-4 border-white shadow-xl overflow-hidden bg-slate-50">
               <img src={activeUser.avatar} alt={activeUser.name} className="w-full h-full object-cover" />
             </div>
-            {isOwnProfile && (
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                <Camera className="w-6 h-6 text-white" />
-              </div>
-            )}
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="text-white text-xs font-bold">View</span>
+            </div>
           </div>
           
           <h1 className="text-2xl font-bold text-slate-900">{activeUser.name}</h1>
           <p className="text-sm text-slate-500 mb-1">{activeUser.email}</p>
           <p className="text-slate-600 text-sm max-w-md mx-auto leading-relaxed mt-2">{activeUser.bio}</p>
+
+          {isOwnProfile && (
+            <button
+              onClick={() => {
+                setPendingAvatar(user.avatar);
+                setPendingName(user.name || "");
+                setPendingBio(user.bio || "");
+                setIsModalOpen(true);
+              }}
+              className="mt-6 px-6 py-2.5 rounded-full font-bold text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 shadow-sm transition-all"
+            >
+              Edit Profile
+            </button>
+          )}
 
           {/* Follow Button for Other User Profiles */}
           {!isOwnProfile && (
@@ -452,7 +480,7 @@ export function ProfilePage() {
                   <div 
                     key={follower.id}
                     onClick={() => {
-                      if (follower.id === "local_user") {
+                      if (follower.id === "11111111-1111-1111-1111-111111111111") {
                         navigate("/profile");
                       } else {
                         navigate(`/profile/${follower.id}`);
@@ -487,7 +515,7 @@ export function ProfilePage() {
                   <div 
                     key={person.id}
                     onClick={() => {
-                      if (person.id === "local_user") {
+                      if (person.id === "11111111-1111-1111-1111-111111111111") {
                         navigate("/profile");
                       } else {
                         navigate(`/profile/${person.id}`);
@@ -521,26 +549,26 @@ export function ProfilePage() {
 
         {/* Local user profile modifications modal */}
         {isOwnProfile && isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-slate-900/50 backdrop-blur-sm">
-            <div className="bg-white w-full max-w-md max-h-full rounded-3xl shadow-2xl flex flex-col glass-card border border-slate-200" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
+            <div className="bg-white w-full max-w-md my-auto rounded-3xl shadow-2xl flex flex-col glass-card border border-slate-200" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between p-6 pb-4 border-b border-slate-100 flex-shrink-0">
-                <h2 className="text-xl font-bold text-slate-900">Choose Profile Picture</h2>
+                <h2 className="text-xl font-bold text-slate-900">Edit Profile</h2>
                 <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="p-6">
                 <div className="flex flex-col items-center mb-6">
-                  <div className="w-32 h-32 rounded-full border-4 border-slate-100 shadow-md overflow-hidden mb-4 bg-slate-50">
+                  <div className="w-24 h-24 rounded-full border-4 border-slate-100 shadow-md overflow-hidden mb-4 bg-slate-50">
                     <img src={pendingAvatar} alt="Pending Avatar" className="w-full h-full object-cover" />
                   </div>
                   <button 
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 text-indigo-600 font-semibold px-4 py-2 hover:bg-indigo-50 rounded-full transition-colors"
+                    className="flex items-center gap-2 text-indigo-600 outline-none font-semibold px-4 py-2 hover:bg-indigo-50 rounded-full transition-colors"
                   >
                     <Upload className="w-4 h-4" />
-                    Upload from device
+                    Change Picture
                   </button>
                   <input 
                     type="file" 
@@ -551,7 +579,27 @@ export function ProfilePage() {
                   />
                 </div>
 
-                <div className="mb-2">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Name</label>
+                    <input 
+                      type="text"
+                      className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      value={pendingName}
+                      onChange={(e) => setPendingName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Bio</label>
+                    <textarea 
+                      className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none h-24"
+                      value={pendingBio}
+                      onChange={(e) => setPendingBio(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6">
                   <h3 className="text-sm font-semibold text-slate-500 mb-3 uppercase tracking-wider">Or choose an avatar</h3>
                   <div className="grid grid-cols-4 gap-3">
                     {PREDEFINED_AVATARS.map((avatar, idx) => (
@@ -559,7 +607,7 @@ export function ProfilePage() {
                         key={idx}
                         onClick={() => setPendingAvatar(avatar)}
                         className={cn(
-                          "w-full aspect-square rounded-full overflow-hidden border-2 transition-all p-1",
+                          "w-full aspect-square rounded-full overflow-hidden border-2 transition-all p-1 outline-none",
                           pendingAvatar === avatar ? "border-indigo-600 bg-indigo-50" : "border-transparent hover:bg-slate-100"
                         )}
                       >
@@ -578,7 +626,7 @@ export function ProfilePage() {
                   Cancel
                 </button>
                 <button 
-                  onClick={saveAvatar}
+                  onClick={saveProfile}
                   className="flex-1 py-2.5 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg shadow-indigo-200 transition-all"
                 >
                   Save Changes
@@ -630,9 +678,9 @@ export function ProfilePage() {
                     <Shield className="w-5 h-5 opacity-60" />
                     <span className="font-medium">Privacy Settings</span>
                 </button>
-                <button className="w-full flex items-center gap-3 p-3 text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                <button onClick={handleGoogleLogout} className="w-full flex items-center gap-3 p-3 text-red-600 hover:bg-red-50 rounded-xl transition-all">
                     <LogOut className="w-5 h-5" />
-                    <span className="font-medium">Logout Session</span>
+                    <span className="font-medium">Logout</span>
                 </button>
               </div>
 

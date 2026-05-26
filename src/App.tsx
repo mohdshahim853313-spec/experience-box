@@ -1,7 +1,7 @@
 import { StrictMode, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
-import { Lock } from 'lucide-react';
+import { Lock, X } from 'lucide-react';
 import { HomePage } from './pages/HomePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { WritePage } from './pages/WritePage';
@@ -22,6 +22,7 @@ import { ScrollToTop } from './components/layout/ScrollToTop';
 import { initAuth } from './lib/auth';
 import { supabase } from './lib/supabase';
 import { useRealtimeNotifications } from './hooks/useRealtime';
+import { seedDatabaseIfEmpty } from './seedData';
 
 // Fallback pages
 function PlaceholderPage({ title }: { title: string }) {
@@ -120,11 +121,36 @@ function ActionLoginPrompt({ onClose }: { onClose: () => void }) {
   );
 }
 
+function AvatarViewer({ src, onClose }: { src: string; onClose: () => void }) {
+  return (
+    <div 
+      className="fixed inset-0 z-[99999] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="relative max-w-2xl w-full flex items-center justify-center">
+        <button 
+          onClick={onClose}
+          className="absolute -top-12 right-0 p-2 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full transition-colors"
+        >
+          <X className="w-6 h-6" />
+        </button>
+        <img 
+          src={src} 
+          alt="Profile Avatar" 
+          className="max-h-[80vh] w-auto max-w-full rounded-2xl shadow-2xl object-contain bg-slate-800" 
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+    </div>
+  );
+}
+
 function AppContent() {
   const [userId, setUserId] = useState<string | null | undefined>(undefined);
   const [forceLoginWall, setForceLoginWall] = useState(false);
   const [showSoftPrompt, setShowSoftPrompt] = useState(false);
   const [showActionLogin, setShowActionLogin] = useState(false);
+  const [avatarViewerSrc, setAvatarViewerSrc] = useState<string | null>(null);
   const [softPromptDismissed, setSoftPromptDismissed] = useState(
     sessionStorage.getItem('expbox_soft_prompt_dismissed') === 'true'
   );
@@ -133,9 +159,16 @@ function AppContent() {
   const isTrialExpired = sessionStorage.getItem('expbox_trial_expired') === 'true';
   
   // Conditionally show wall during render to avoid flickers
-  const showLoginWall = userId === null && 
+  const ENABLE_TRIAL = false;
+  const showLoginWall = ENABLE_TRIAL && userId === null && 
     location.pathname !== '/login' && 
     (forceLoginWall || isTrialExpired);
+
+  useEffect(() => {
+    if (userId) {
+      seedDatabaseIfEmpty();
+    }
+  }, [userId]);
 
   useEffect(() => {
     if (showLoginWall || showSoftPrompt || showActionLogin) {
@@ -179,8 +212,11 @@ function AppContent() {
     return unsubscribe;
   }, []);
 
-  // Timer logic
+  // Timer logic - DISABLED functionality as per request
   useEffect(() => {
+    const ENABLE_TRIAL = false; // Disable times up feature for now
+    if (!ENABLE_TRIAL) return;
+    
     if (userId === null && location.pathname !== '/login') {
       if (sessionStorage.getItem('expbox_trial_expired')) {
         setForceLoginWall(true);
@@ -228,6 +264,17 @@ function AppContent() {
     return () => window.removeEventListener('trigger-action-login', handleActionLogin);
   }, []);
 
+  useEffect(() => {
+    const handleAvatarViewer = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail?.src) {
+        setAvatarViewerSrc(customEvent.detail.src);
+      }
+    };
+    window.addEventListener('trigger-avatar-viewer', handleAvatarViewer);
+    return () => window.removeEventListener('trigger-avatar-viewer', handleAvatarViewer);
+  }, []);
+
   // Realtime Notifications integration
   useRealtimeNotifications(userId, (payload) => {
     if (payload.type === 'comment') {
@@ -248,6 +295,7 @@ function AppContent() {
     <>
       <ScrollToTop />
       <Toaster position="top-center" />
+      {avatarViewerSrc && <AvatarViewer src={avatarViewerSrc} onClose={() => setAvatarViewerSrc(null)} />}
       {showActionLogin && <ActionLoginPrompt onClose={() => setShowActionLogin(false)} />}
       {showSoftPrompt && <SoftLoginPrompt onClose={handleDismissSoftPrompt} />}
       {showLoginWall && <LoginWall />}

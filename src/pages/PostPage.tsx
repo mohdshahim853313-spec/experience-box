@@ -145,7 +145,7 @@ export function PostPage() {
       setCommentText("");
 
       // Create a notification for the post owner
-      if (post.creator_id === "local_user") {
+      if (post.creator_id === "11111111-1111-1111-1111-111111111111") {
         const newNotification = {
           id: `notif_${Date.now()}`,
           type: "comment",
@@ -177,7 +177,7 @@ export function PostPage() {
               )}
               onClick={() => {
                 if (!post.is_anonymous) {
-                  navigate(post.creator_id === "local_user" ? "/profile" : `/profile/${post.creator_id}`);
+                  navigate(post.creator_id === "11111111-1111-1111-1111-111111111111" ? "/profile" : `/profile/${post.creator_id}`);
                 }
               }}
             >
@@ -186,7 +186,16 @@ export function PostPage() {
                   <UserCircle className="w-6 h-6 text-slate-400" />
                 </div>
               ) : (
-                <img src={post.author_avatar} alt={displayName} className="w-10 h-10 rounded-full bg-slate-100 object-cover border border-slate-200" />
+                <img 
+                  src={post.author_avatar} 
+                  alt={displayName} 
+                  className="w-10 h-10 rounded-full bg-slate-100 object-cover border border-slate-200" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.dispatchEvent(new CustomEvent('trigger-avatar-viewer', { detail: { src: post.author_avatar } }));
+                  }}
+                />
               )}
               
               <div className="flex flex-col">
@@ -225,7 +234,7 @@ export function PostPage() {
                     >
                       {isSaved ? "Remove Bookmark" : "Bookmark"}
                     </button>
-                    {post.creator_id === "local_user" && (
+                    {post.creator_id === "11111111-1111-1111-1111-111111111111" && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setShowMenu(false); navigate(`/write?edit=${post.id}`); }}
                         className="px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 font-medium"
@@ -312,7 +321,7 @@ export function PostPage() {
                 />
                 <button 
                   disabled={!commentText.trim()}
-                  className="bg-indigo-600 disabled:bg-slate-300 text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-indigo-700 transition-colors"
+                  className="bg-indigo-600 disabled:bg-indigo-400 disabled:opacity-70 text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-indigo-700 transition-colors"
                 >
                   Comment
                 </button>
