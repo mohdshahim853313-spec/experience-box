@@ -5,22 +5,19 @@ export function useRealtimeNotifications(userId: string | undefined, onNotificat
   useEffect(() => {
     if (!supabase || !userId) return;
 
-    // Listen to new comments on the user's posts
-    // Note: In Supabase Dashboard, you must enable Realtime for the 'comments' and 'post_likes' tables
+    // Listen to new notifications for the current user
     const channel = supabase
-      .channel('realtime_notifications')
+      .channel(`realtime_notifications_${userId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'comments' },
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`
+        },
         (payload) => {
-          onNotification({ type: 'comment', data: payload.new });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'post_likes' },
-        (payload) => {
-          onNotification({ type: 'like', data: payload.new });
+          onNotification(payload.new);
         }
       )
       .subscribe();

@@ -88,16 +88,8 @@ const getPostCommentsCount = (post: Post) => {
 };
 
 export function HomePage() {
-  const [posts, setPosts] = useState<Post[]>(() => {
-    try {
-      const localPostsStr = localStorage.getItem('expbox_user_posts');
-      const localPosts = localPostsStr ? JSON.parse(localPostsStr) as Post[] : [];
-      return [...localPosts, ...MOCK_POSTS];
-    } catch(e) {
-      return MOCK_POSTS;
-    }
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState("");

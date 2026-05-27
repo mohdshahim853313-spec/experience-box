@@ -143,22 +143,6 @@ export function PostPage() {
 
       setPostComments(prev => [newComment, ...(prev || [])]);
       setCommentText("");
-
-      // Create a notification for the post owner
-      if (post.creator_id === "11111111-1111-1111-1111-111111111111") {
-        const newNotification = {
-          id: `notif_${Date.now()}`,
-          type: "comment",
-          user: {
-            name: "Anonymous User",
-            avatar: "👤",
-          },
-          content: `commented on your post "${post.title.substring(0, 30)}..."`,
-          time: "Just now",
-          read: false,
-        };
-        setNotifications(prev => [newNotification, ...(prev || [])]);
-      }
     });
   };
 
@@ -321,7 +305,7 @@ export function PostPage() {
                 />
                 <button 
                   disabled={!commentText.trim()}
-                  className="bg-indigo-600 disabled:bg-indigo-400 disabled:opacity-70 text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-indigo-700 transition-colors"
+                  className="bg-blue-500 disabled:bg-blue-300 disabled:opacity-70 text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-blue-600 transition-colors"
                 >
                   Comment
                 </button>

@@ -117,11 +117,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
   const displayName = post.is_anonymous ? "Anonymous User" : (post.author_name || "Unknown User");
   
   return (
-    <motion.article 
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+    <article 
       className={cn(
         "glass-card p-4 sm:p-5 max-sm:rounded-none rounded-2xl max-sm:border-x-0 border border-slate-200 flex flex-col h-full relative",
         showMenu ? "z-50" : "z-0"
@@ -320,7 +316,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
             />
             <button 
               disabled={!commentText.trim()}
-              className="bg-indigo-600 disabled:bg-indigo-400 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors"
+              className="bg-blue-500 disabled:bg-blue-300 disabled:opacity-70 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors"
             >
               Comment
             </button>
@@ -346,7 +342,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onHide }) => {
           </div>
         </div>
       )}
-    </motion.article>
+    </article>
   );
 }
 

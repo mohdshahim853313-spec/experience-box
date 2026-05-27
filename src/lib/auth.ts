@@ -50,7 +50,7 @@ export const initAuth = (
 };
 
 export const googleSignIn = async (): Promise<{ user: User; accessToken: string } | null> => {
-  if (!supabase) throw new Error("Supabase is not configured.");
+  if (!supabase) throw new Error("Supabase keys missing. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your AI Studio Settings > Secrets.");
   
   const redirectUrl = (window.location.origin === "null" || !window.location.origin)
     ? undefined
@@ -71,7 +71,7 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
 };
 
 export const emailSignUp = async (email: string, password: string, displayName: string) => {
-  if (!supabase) throw new Error("Supabase is not configured.");
+  if (!supabase) throw new Error("Supabase keys missing. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your AI Studio Settings > Secrets.");
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -86,7 +86,7 @@ export const emailSignUp = async (email: string, password: string, displayName: 
 };
 
 export const emailSignIn = async (email: string, password: string) => {
-  if (!supabase) throw new Error("Supabase is not configured.");
+  if (!supabase) throw new Error("Supabase keys missing. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your AI Studio Settings > Secrets.");
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,

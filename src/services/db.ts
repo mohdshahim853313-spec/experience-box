@@ -22,24 +22,18 @@ export const MOCK_SUGGESTED_FOLLOWS = [
 ];
 
 export async function fetchExperiences(): Promise<Post[]> {
-  let combinedPosts: Post[] = [];
-  
   if (supabase) {
     try {
       const { data, error } = await supabase.from('experiences').select('*').order('created_at', { ascending: false });
-      if (!error && data) {
-        combinedPosts = data.map(exp => {
+      if (error) {
+        console.error("Supabase error:", error);
+      } else if (data) {
+        const mappedPosts = data.map(exp => {
           let author_name = exp.author_name;
           let author_avatar = exp.author_avatar;
           
           if (!author_name) {
-             if (exp.creator_id === "11111111-1111-1111-1111-111111111111") {
-                try {
-                  const localProfile = JSON.parse(localStorage.getItem('expbox_user_profile') || '{}');
-                  author_name = localProfile.name || "Mohd Shahim";
-                  author_avatar = localProfile.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=Shahim";
-                } catch(e) {}
-             } else if (exp.creator_id && exp.creator_id !== "00000000-0000-0000-0000-000000000000") {
+             if (exp.creator_id && exp.creator_id !== "00000000-0000-0000-0000-000000000000") {
                 author_name = "User " + exp.creator_id.substring(0, 5);
                 author_avatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${exp.creator_id}`;
              }
@@ -52,17 +46,16 @@ export async function fetchExperiences(): Promise<Post[]> {
             content: exp.context_situation || exp.content || '',
           };
         }) as Post[];
+        
+        return mappedPosts; // Return ONLY supabase data when connected
       }
     } catch (err) {
       console.warn("Supabase fetch failed, using fallback.", err);
     }
   }
 
-  // Load from local storage and mock data if db is empty or failed
-  if (combinedPosts.length === 0) {
-    combinedPosts = [...MOCK_POSTS];
-  }
-  
+  // Load from local storage and mock data ONLY if db is not connected or failed
+  let combinedPosts: Post[] = [...MOCK_POSTS];
   try {
     const localPostsStr = localStorage.getItem('expbox_user_posts');
     if (localPostsStr) {

@@ -277,10 +277,38 @@ function AppContent() {
 
   // Realtime Notifications integration
   useRealtimeNotifications(userId, (payload) => {
+    // Update local storage so navbar badge shows up
+    const stored = localStorage.getItem("expbox_notifications");
+    let currentNotifs = [];
+    if (stored) {
+      try {
+        currentNotifs = JSON.parse(stored);
+      } catch(e) {}
+    }
+    
+    const newNotif = {
+      id: payload.id,
+      type: payload.type,
+      user: {
+        name: payload.actor_name || "Someone",
+        avatar: payload.actor_avatar || "👤",
+      },
+      content: payload.content,
+      time: "Just now",
+      read: false,
+    };
+    
+    localStorage.setItem("expbox_notifications", JSON.stringify([newNotif, ...currentNotifs]));
+    
+    // Dispatch an event so components using useLocalStorage can sync (like Navbar)
+    window.dispatchEvent(new Event("local-storage"));
+
     if (payload.type === 'comment') {
-      toast.success(`Someone commented on a post!`);
+      toast.success(`New Comment: ${payload.content}`);
     } else if (payload.type === 'like') {
-      toast.success(`Someone liked a post!`);
+      toast.success(`New Like: ${payload.content}`);
+    } else {
+      toast.success(payload.content);
     }
   });
 

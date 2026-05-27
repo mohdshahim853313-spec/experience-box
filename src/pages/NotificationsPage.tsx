@@ -64,16 +64,50 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 export function NotificationsPage() {
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [notifications, setNotifications] = useLocalStorage<Notification[]>("expbox_notifications", []);
+  const [user] = useLocalStorage("expbox_user_profile", { id: "11111111-1111-1111-1111-111111111111" });
 
   useEffect(() => {
-    if (notifications.length === 0 && !localStorage.getItem("expbox_notifications_cleared")) {
-      setNotifications(MOCK_NOTIFICATIONS);
-    }
-  }, []);
+    async function fetchNotifs() {
+      if (!user?.id) return;
+      const { supabase } = await import('../lib/supabase');
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
 
-  const clearNotifications = () => {
+        if (!error && data) {
+          const mapped = data.map(n => ({
+            id: n.id,
+            type: n.type as NotificationType,
+            user: {
+              name: n.actor_name || "Someone",
+              avatar: n.actor_avatar || "👤",
+            },
+            content: n.content,
+            time: new Date(n.created_at).toLocaleDateString(),
+            read: n.is_read || n.read || false,
+          }));
+          setNotifications(mapped);
+        }
+      } else {
+        if (notifications.length === 0 && !localStorage.getItem("expbox_notifications_cleared")) {
+          setNotifications(MOCK_NOTIFICATIONS);
+        }
+      }
+    }
+    
+    fetchNotifs();
+  }, [user?.id]);
+
+  const clearNotifications = async () => {
     setNotifications([]);
     localStorage.setItem("expbox_notifications_cleared", "true");
+    const { supabase } = await import('../lib/supabase');
+    if (supabase && user?.id) {
+       await supabase.from('notifications').delete().eq('user_id', user.id);
+    }
   };
 
   const getIcon = (type: NotificationType) => {
@@ -87,8 +121,12 @@ export function NotificationsPage() {
 
   const filteredNotifications = notifications.filter(n => filter === "all" || !n.read);
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     setNotifications(notifications.map(n => ({ ...n, read: true })));
+    const { supabase } = await import('../lib/supabase');
+    if (supabase && user?.id) {
+       await supabase.from('notifications').update({ read: true, is_read: true }).eq('user_id', user.id).eq('read', false);
+    }
   };
 
   return (
@@ -161,8 +199,12 @@ export function NotificationsPage() {
               filteredNotifications.map((notification) => (
                 <div 
                   key={notification.id} 
-                  onClick={() => {
+                  onClick={async () => {
                      setNotifications(notifications.map(n => n.id === notification.id ? { ...n, read: true } : n));
+                     const { supabase } = await import('../lib/supabase');
+                     if (supabase && user?.id) {
+                        await supabase.from('notifications').update({ read: true, is_read: true }).eq('id', notification.id);
+                     }
                   }}
                   className={cn(
                     "p-4 flex gap-4 hover:bg-slate-50 transition-colors cursor-pointer group",
